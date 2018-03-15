@@ -1,0 +1,235 @@
+
+#+STARTIP: overview
+
+* try
+  #+BEGIN_SRC emacs-lisp
+  
+    (use-package try
+      :ensure t)
+  
+  #+END_SRC
+
+* Org-mode
+  Install org mode for note taking, todos, tasks, presentations and many more.
+
+  #+BEGIN_SRC emacs-lisp
+   
+    (use-package org
+      :mode (("\\.org$" . org-mode))
+      :ensure org-plus-contrib
+      :config
+        (progn
+          ;; config stuff
+          ))
+  
+  #+END_SRC
+
+* which-key
+  Brings up some help when key is pressed
+  #+BEGIN_SRC emacs-lisp
+
+    (use-package which-key
+      :ensure t 
+      :config
+      (which-key-mode))
+  
+  #+END_SRC
+  
+* org-bullets
+  Makes bullets prettier in org-mode
+
+  #+BEGIN_SRC emacs-lisp
+  
+    (use-package org-bullets
+      :ensure t
+      :config
+      (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+
+  #+END_SRC
+
+* ibuffer
+  Use ibuffer instead of the traditional buffer. Adds highlighting and displays nicer
+  
+  #+BEGIN_SRC emacs-lisp 
+    
+    (defalias 'list-buffers 'ibuffer)
+  
+  #+END_SRC
+  
+* Ace-window
+  Window manager
+  #+BEGIN_SRC emacs-lisp 
+  ;; progn allows to call multiple functions within the initialization of a package
+  (use-package ace-window
+    :ensure t
+    :init
+    (progn
+      (global-set-key [remap other-window] 'ace-window)
+      (custom-set-faces
+         '(aw-leading-char-face
+	 ((t (:inherit ace-jump-face-foreground :height 2.0))))) 
+	 ))
+  #+END_SRC
+
+* Swiper & Counsel
+  Incremental search
+  #+BEGIN_SRC emacs-lisp
+  ;; it looks like counsel is a requirement for swiper
+  (use-package counsel
+    :ensure t
+    )
+
+  (use-package ivy
+    :ensure t
+    :diminish (ivy-mode)
+    :bind (("C-x b" . ivy-switch-buffer))
+    :config
+    (ivy-mode 1)
+    (setq ivy-use-virtual-buffers t)
+    (setq ivy-display-style 'fancy))
+
+
+  (use-package swiper
+    :ensure try
+    :bind (("C-s" . swiper)
+	   ("C-r" . swiper)
+	   ("C-c C-r" . ivy-resume)
+	   ("M-x" . counsel-M-x)
+	   ("C-x C-f" . counsel-find-file))
+    :config
+    (progn
+      (ivy-mode 1)
+      (setq ivy-use-virtual-buffers t)
+      (setq ivy-display-style 'fancy)
+      (define-key read-expression-map (kbd "C-r") 'counsel-expression-history)
+      ))
+  #+END_SRC
+
+* Avy
+  Go to word starting with a letter entered by user
+  #+BEGIN_SRC emacs-lisp 
+  (use-package avy
+    :ensure t
+    :bind ("M-s" . avy-goto-word-1))
+  #+END_SRC
+
+* Auto-complete
+  Autocompletion package
+  #+BEGIN_SRC emacs-lisp
+  (use-package auto-complete
+    :ensure t
+    :init
+    (progn
+      (ac-config-default)
+      (global-auto-complete-mode t)
+      ))
+  #+END_SRC
+
+* Flycheck
+  #+BEGIN_SRC emacs-lisp
+  (use-package flycheck
+    :ensure t
+    :init 
+    (global-flycheck-mode t)) 
+  #+END_SRC
+
+* Python
+** Setup Jedi autocompletion
+    Jedi autocompletion. Similar functionality is contained inside Elpy
+
+    #+BEGIN_SRC emacs-lisp
+      
+    ;  (use-package jedi
+    ;    :ensure t
+    ;    :init
+    ;     (add-hook 'python-mode-hook 'jedi:setup)
+    ;     (add-hook 'python-mode-hook 'jedi:ac-setup))
+  
+    #+END_SRC
+
+** Setup python interpreter
+    Sets up python interpreter args
+ 
+    #+BEGIN_SRC emacs-lisp
+      
+      (setq python-shell-interpreter-args "")
+      (setq python-shell-completion-native-enable nil)
+   
+    #+END_SRC
+
+** Elpy
+   Package that enables python IDE-like features
+
+   #+BEGIN_SRC emacs-lisp
+   
+     (use-package elpy
+       :ensure t
+       :config 
+         (elpy-enable))
+   
+   #+END_SRC
+
+* Yasnuippet
+  Includes popular snippets for python, c/c++, java etc
+  
+  #+BEGIN_SRC emacs-lisp
+    
+    (use-package yasnippet
+      :ensure t
+      :init
+        (yas-global-mode 1))
+  
+  #+END_SRC
+
+* Nlinum-relative
+  Relative numbers
+
+  #+BEGIN_SRC emacs-lisp
+
+    ;;(use-package nlinum-relative
+    ;;  :config
+    ;;  ;; something else you want
+    ;;  (nlinum-relative-setup-evil)
+    ;;  (add-hook 'prog-mode-hook 'nlinum-relative-mode))
+
+    ;;(require 'nlinum-relative)
+    ;;(nlinum-relative-setup-evil)                    ;; setup for evil
+    ;;(add-hook 'prog-mode-hook 'nlinum-relative-mode)
+    ;;(setq nlinum-relative-redisplay-delay 0)      ;; delay
+    ;;(setq nlinum-relative-current-symbol "")      ;; or "" for display current line number
+    ;;(setq nlinum-relative-offset 0)                 ;; 1 if you want 0, 2, 3...
+
+  #+END_SRC
+
+* Evil
+  Vim support for emacs
+
+  #+BEGIN_SRC emacs-lisp
+
+    ;;(require 'evil)
+    ;;  (evil-mode 1)
+  
+  #+END_SRC
+
+* useful alternatives
+  Alternatives to the packages described above
+
+  #+BEGIN_SRC emacs-lisp
+
+    ;(setq ido-enable-flex-matching t)
+    ;(setq ido-everywhere t)
+    ;(ido-mode 1)
+
+    ; The following enables a tabbar with all opened buffers
+    ;(use-package tabbar
+    ;  :ensure t
+    ;  :config (tabbar-mode 1)
+    ;)
+
+    ; Window manager
+    ; Allows you to undo or redo window commands (i.e. reopen closed window etc)
+    ; C-c-left /undo
+    ; C-c-right /redo
+    ;(winner-mode 1)
+
+  #+END_SRC
