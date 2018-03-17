@@ -2,6 +2,9 @@
 #+STARTIP: overview
 
 * try
+  Package that allows you to 'try' a plugin without permanently installing it
+  After restart of emacs, the package that was 'tried' will not be there
+
   #+BEGIN_SRC emacs-lisp
   
     (use-package try
@@ -13,19 +16,94 @@
   Install org mode for note taking, todos, tasks, presentations and many more.
 
   #+BEGIN_SRC emacs-lisp
-   
+
     (use-package org
       :mode (("\\.org$" . org-mode))
       :ensure org-plus-contrib
       :config
-        (progn
-          ;; config stuff
-          ))
-  
+      (progn
+	;; config stuff
+	))
+
+    (setenv "BROWSER" "firefox-browser")
+
+    (use-package org-bullets
+      :ensure t
+      :config
+      (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+
+    (custom-set-variables
+     '(org-directory "~/orgfiles")
+     '(org-default-notes-file (concat org-directory "/notes.org"))
+     '(org-export-html-postamble nil)
+     '(org-hide-leading-stars t)
+     '(org-startup-folded (quote overview))
+     '(org-startup-indented t)
+     )
+
+    (setq org-file-apps
+	  (append '(
+		    ("\\.pdf\\'" . "evince %s")
+		    ) org-file-apps ))
+
+    (global-set-key "\C-ca" 'org-agenda)
+
+    (use-package org-ac
+      :ensure t
+      :init (progn
+	      (require 'org-ac)
+	      (org-ac/config-default)
+	      ))
+
+    (global-set-key (kbd "C-c c") 'org-capture)
+
+    (setq org-agenda-files (list "~/orgfiles/gcal.org"
+                                 "~/orgfiles/index.org"
+				   "~/orgfiles/schedule.org"))
+    (setq org-capture-templates
+	  '(("a" "Appointment" entry (file+headline "~/orgfiles/gcal.org" "Appointments")
+	     "* TODO %?\n:PROPERTIES:\n\n:END:\nDEADLINE: %^T \n %i\n")
+	    ("n" "Note" entry (file+headline "~/orgfiles/notes.org" "Notes")
+	     "* Note %?\n%T")
+	    ("l" "Link" entry (file+headline "~/orgfiles/links.org" "Links")
+	     "* %? %^L %^g \n%T" :prepend t)
+	    ("b" "Book idea" entry (file+headline "~/orgfiles/index.org" "Book ideas")
+	     "* %?\n%T" :prepend t)
+	    ("t" "To Do Item" entry (file+headline "~/orgfiles/index.org" "To Do Items")
+	     "* %?\n%T" :prepend t)))
+             
+    ;; using %i in the template above allows you to insert a selected text
+    ;; when C-c c is pressed
+
+    (defadvice org-capture-finalize 
+	(after delete-capture-frame activate)  
+      "Advise capture-finalize to close the frame"  
+      (if (equal "capture" (frame-parameter nil 'name))  
+	  (delete-frame)))
+
+    (defadvice org-capture-destroy 
+	(after delete-capture-frame activate)  
+      "Advise capture-destroy to close the frame"  
+      (if (equal "capture" (frame-parameter nil 'name))  
+	  (delete-frame)))  
+
+    (use-package noflet
+      :ensure t )
+
+    (defun make-capture-frame ()
+      "Create a new frame and run org-capture."
+      (interactive)
+      (make-frame '((name . "capture")))
+      (select-frame-by-name "capture")
+      (delete-other-windows)
+      (noflet ((switch-to-buffer-other-window (buf) (switch-to-buffer buf)))
+	      (org-capture)))
+
   #+END_SRC
 
 * which-key
   Brings up some help when key is pressed
+
   #+BEGIN_SRC emacs-lisp
 
     (use-package which-key
@@ -58,7 +136,9 @@
   
 * Ace-window
   Window manager
+
   #+BEGIN_SRC emacs-lisp 
+
   ;; progn allows to call multiple functions within the initialization of a package
   (use-package ace-window
     :ensure t
@@ -69,15 +149,21 @@
          '(aw-leading-char-face
 	 ((t (:inherit ace-jump-face-foreground :height 2.0))))) 
 	 ))
+
   #+END_SRC
 
 * Swiper & Counsel
   Incremental search
+
   #+BEGIN_SRC emacs-lisp
+
   ;; it looks like counsel is a requirement for swiper
   (use-package counsel
     :ensure t
-    )
+    :bind
+    (("M-y" . counsel-yank-pop)
+      :map ivy-minibuffer-map
+      ("M-y" . ivy-next-line)))
 
   (use-package ivy
     :ensure t
@@ -107,15 +193,20 @@
 
 * Avy
   Go to word starting with a letter entered by user
+
   #+BEGIN_SRC emacs-lisp 
+
   (use-package avy
     :ensure t
     :bind ("M-s" . avy-goto-word-1))
+
   #+END_SRC
 
 * Auto-complete
   Autocompletion package
+
   #+BEGIN_SRC emacs-lisp
+  
   (use-package auto-complete
     :ensure t
     :init
@@ -123,14 +214,19 @@
       (ac-config-default)
       (global-auto-complete-mode t)
       ))
+  
   #+END_SRC
 
 * Flycheck
+  On the fly syntax check for a huge number of languages: python, c/c++, java etc
+  
   #+BEGIN_SRC emacs-lisp
+  
   (use-package flycheck
     :ensure t
     :init 
     (global-flycheck-mode t)) 
+  
   #+END_SRC
 
 * Python
@@ -148,12 +244,12 @@
     #+END_SRC
 
 ** Setup python interpreter
-    Sets up python interpreter args
+    Sets up python interpreter
  
     #+BEGIN_SRC emacs-lisp
       
-      (setq python-shell-interpreter-args "")
-      (setq python-shell-completion-native-enable nil)
+      (setq py-python-command "python")
+      (setq python-shell-interpreter "python")
    
     #+END_SRC
 
@@ -169,7 +265,7 @@
    
    #+END_SRC
 
-* Yasnuippet
+* Yasnippet
   Includes popular snippets for python, c/c++, java etc
   
   #+BEGIN_SRC emacs-lisp
@@ -238,7 +334,7 @@
       :ensure t
       :config
       (beacon-mode 1)
-					    ; (setq beacon-color "#666600")
+      ; (setq beacon-color "#666600")
       )
 
     ;; deletes multiple empty lines and extra spaces
@@ -258,6 +354,21 @@
       :ensure t
       :config
       (global-set-key (kbd "C-=") 'er/expand-region))
+
+    ;; Allows for better interprogram clipboard integration		  
+    (setq save-interprogram-paste-before-kill t)
+
+    ;; Automatically reload files that have been modified on the filesystem
+    (global-auto-revert-mode 1) ;; you might not want this
+    (setq auto-revert-verbose nil) ;; or this		  
+
+  #+END_SRC
+
+* Iedit and narrow/widen dwim
+  These plugins allow for easier and more powerful editting by enabling
+  multiple cursor editting and narrowing/expanding of selection to edit
+
+  #+BEGIN_SRC emacs-lisp
 
     ;; enables multiple cursors editting of selected text
     ;; use C-; to toggle it on/off
@@ -293,8 +404,8 @@
 	     (LaTeX-narrow-to-environment))
 	    (t (narrow-to-defun))))
 
-    (define-key endless/toggle-map "n"
-      #'narrow-or-widen-dwim)
+    ;(define-key endless/toggle-map "n"
+    ;  #'narrow-or-widen-dwim)
     ;; This line actually replaces Emacs' entire narrowing
     ;; keymap, that's how much I like this command. Only
     ;; copy it if that's what you want.
@@ -304,6 +415,40 @@
 		(define-key LaTeX-mode-map "\C-xn"
 		  nil)))
 
+  #+END_SRC
+
+* Web-mode
+  Mode that provides autocompletion, tags matching, etc. for web dev
+
+  #+BEGIN_SRC emacs-lisp
+
+    (use-package web-mode
+    :ensure t
+    :config
+	 (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+	 (setq web-mode-engines-alist
+	       '(("django"    . "\\.html\\'")))
+	 (setq web-mode-ac-sources-alist
+	       '(("css" . (ac-source-css-property))
+		 ("html" . (ac-source-words-in-buffer ac-source-abbrev))))
+    
+    (setq web-mode-enable-auto-closing t))
+    (setq web-mode-enable-auto-quoting t)
+  
+  #+END_SRC
+
+* Load external files
+  Defines a function to load external configuration lisp files
+  
+  #+BEGIN_SRC emacs-lisp
+
+    (defun load-if-exists (f)
+    "Load the elisp file only if it exists and is readable"
+      (if (file-readable-p f)
+          (load-file f)))
+
+    ;(load-if-exists "~/some_file.el")
+  
   #+END_SRC
 
 * useful alternatives
@@ -331,3 +476,11 @@
 * Emacs useful key combinations
 ** Recenter view: C-l
 ** Undo & Redo: C-/ , C-Shift-/
+** Toggle narrow to selection: C-x n
+** Expand region of selection: C-=
+** Execute lisp command: C-x C-e
+** Toggle multiple cursors to edit all instances of selection: C-;
+** To enter/exit org capture screen: C-c c | C-c C-c
+** Open link in browser: C-c C-o
+** Link syntax is [[url][description] *] (without the star)
+** Export org file: C-c C-e

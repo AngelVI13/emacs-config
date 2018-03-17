@@ -20,8 +20,8 @@
 (add-to-list 'package-archives
 	     '("org" . "https://orgmode.org/elpa/") t)
 ;; The package below may contain unstable versions of packages.
-;;(add-to-list 'package-archives
-;;             '("melpa" . "https://melpa.org/packages/") t)
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/") t)
 
 (package-initialize)
 
