@@ -1,6 +1,15 @@
 
 #+STARTIP: overview
 
+* Filetype styles
+** C/C++ style
+   #+BEGIN_SRC emacs-lisp
+
+     (setq c-default-style "stroustrup"
+          c-basic-offset 4)
+
+   #+END_SRC
+
 * try
   Package that allows you to 'try' a plugin without permanently installing it
   After restart of emacs, the package that was 'tried' will not be there
@@ -255,6 +264,8 @@
 
 ** Elpy
    Package that enables python IDE-like features
+   NOTE: also check out the python requirements for elpy here:
+   [[https://github.com/jorgenschaefer/elpy][Github Elpy]]
 
    #+BEGIN_SRC emacs-lisp
    
@@ -484,4 +495,6 @@
 ** Open link in browser: C-c C-o
 ** Link syntax is [[url][description] *] (without the star)
 ** Export org file: C-c C-e
-** Make long line of text into paragraph: Alt-Q
+** Make long line of text into paragraph: M-Q
+** Search for text: C-Shift-s
+** Jump forward/backward a word: M-f / M-b
