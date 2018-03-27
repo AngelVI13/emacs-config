@@ -211,6 +211,9 @@ Some common gui related options
   
   #+END_SRC
   
+* Emmet mode
+!Check out emmet mode for rapid web dev
+
 * Ace-window
   Window manager
 
@@ -231,6 +234,9 @@ Some common gui related options
 
 * Swiper & Counsel
   Incremental search
+
+  !!! Note: In order to use counsel-ag you have to install 
+  the silversearcher-ag package (apt-get linux, choco win?)
 
   #+BEGIN_SRC emacs-lisp
 
@@ -346,6 +352,9 @@ Some common gui related options
 * Ggtags
 Tags for code navigation
 
+!!! Note2: In order to use ggtags you have to install the 'global' 
+package (apt-get linux, choco? win)
+
 #+BEGIN_SRC emacs-lisp
 
   ;; tags for code navigation
@@ -357,6 +366,50 @@ Tags for code navigation
                 (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
                   (ggtags-mode 1))))
     )
+
+#+END_SRC
+
+* Projectile
+Enables management of multiple projects
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package projectile
+    :ensure t
+    :config
+    (projectile-global-mode)
+    (setq projectile-completion-system 'ivy))
+
+  (use-package counsel-projectile
+    :ensure t)
+  (counsel-projectile-mode)
+
+#+END_SRC
+
+* Dump-jump
+Similar functionality to ggtags i.e. jump to declaration/usage etc
+Works for multiple languages
+
+#+BEGIN_SRC emacs-lisp
+  (use-package dumb-jump
+    :bind (("M-g o" . dumb-jump-go-other-window)
+           ("M-g j" . dumb-jump-go)
+           ("M-g x" . dumb-jump-go-prefer-external)
+           ("M-g z" . dumb-jump-go-prefer-external-other-window))
+    :config (setq dumb-jump-selector 'ivy) ;; (setq dumb-jump-selector 'helm)
+    :ensure)
+
+  (global-set-key
+   (kbd "C-x C-d")
+   (defhydra dumb-jump-hydra (:color blue :columns 3)
+     "Dumb Jump"
+     ("j" dumb-jump-go "Go")
+     ("o" dumb-jump-go-other-window "Other window")
+     ("e" dumb-jump-go-prefer-external "Go external")
+     ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
+     ("i" dumb-jump-go-prompt "Prompt")
+     ("l" dumb-jump-quick-look "Quick look")
+     ("b" dumb-jump-back "Back")))
 
 #+END_SRC
 
@@ -715,3 +768,10 @@ key presses
 ** Indent text block lefr/right: C-< / C->
 ** Open emacs shell: F6
 ** Hydra - move window splitter around: C-M-s
+** Ggtags go to definition / return from definition: M-. / M-*
+** To search all files for a string/regex: counsel-ag (type C-c C-o to 
+get all results in a buffer so you can quickly navigate
+** Projectile - search all project files: C-c p s s / C-c p s g
+** Projectile - find all occurance of regexp in project: C-c p o
+** Projectile - dicover projects using the projectile-discover...
+** Dump-jump(hydra) - jump to definition/usage (multiple languages): C-x C-d
