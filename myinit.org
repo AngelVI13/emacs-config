@@ -10,7 +10,7 @@ Some common gui related options
   (set-face-attribute 'region nil :background "#666")
 
   ;; Enable showing of matching parenthesis by default
-  
+
   ; uncomment this if you wish to disable the short delay 
   ; before showing the matching parenthesis
   ;(setq show-paren-delay 0)
@@ -20,8 +20,39 @@ Some common gui related options
   (setq column-number-mode t)
 
   ;; Show line numbers on the left by default
-  (global-linum-mode 1)
+  (global-linum-mode 1)  
+
+  ;; Allows for multiline rigid shifting to left and right
+  (defun shift-text (distance)
+    (if (use-region-p)
+        (let ((mark (mark)))
+          (save-excursion
+            (indent-rigidly (region-beginning)
+                            (region-end)
+                            distance)
+            (push-mark mark t t)
+            (setq deactivate-mark nil)))
+      (indent-rigidly (line-beginning-position)
+                      (line-end-position)
+                      distance)))
+
+  (defun shift-right (count)
+    (interactive "p")
+    (shift-text count))
+
+  (defun shift-left (count)
+    (interactive "p")
+    (shift-text (- count)))
+
+  (global-set-key (kbd "C-<") (lambda () (interactive) (shift-left 4)))
+  (global-set-key (kbd "C->") (lambda () (interactive) (shift-right 4)))
   
+  ;; Adds shortcut to eshell - F6
+  (global-set-key (kbd "<f6>") 'eshell)
+
+  ;; Use spaces instead of tabs
+  (setq-default indent-tabs-mode nil)
+
 #+END_SRC
 
 * Filetype styles
@@ -312,6 +343,23 @@ Some common gui related options
    
    #+END_SRC
 
+* Ggtags
+Tags for code navigation
+
+#+BEGIN_SRC emacs-lisp
+
+  ;; tags for code navigation
+  (use-package ggtags
+    :ensure t
+    :config 
+    (add-hook 'c-mode-common-hook
+              (lambda ()
+                (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+                  (ggtags-mode 1))))
+    )
+
+#+END_SRC
+
 * Yasnippet
   Includes popular snippets for python, c/c++, java etc
   
@@ -492,7 +540,8 @@ A better shell for emacs
   (use-package better-shell
     :ensure t
     :bind (("C-'" . better-shell-shell)
-	     ("C-;" . better-shell-remote-open)))
+	     ;("C-;" . better-shell-remote-open)
+             ))
 
 #+END_SRC
 
@@ -529,7 +578,7 @@ key presses
    (kbd "C-x j")
    (defhydra gotoline 
      ( :pre (linum-mode 1)
-            :post (linum-mode -1))
+       :post (linum-mode 1))
      "goto"
      ("t" (lambda () (interactive)(move-to-window-line-top-bottom 0)) "top")
      ("b" (lambda () (interactive)(move-to-window-line-top-bottom -1)) "bottom")
@@ -556,7 +605,55 @@ key presses
      ("c" org-capture "Capture") ; Don't forget to define the captures you want http://orgmode.org/manual/Capture.html
      ("l" (or )rg-capture-goto-last-stored "Last Capture")))
 
+  ;; Hydra for moving window splitter
+  (global-set-key
+   (kbd "C-M-s")
+   (defhydra hydra-splitter (:color red)
+     "splitter"
+     ("h" (lambda () (interactive) (hydra-move-splitter-left 3)) "left")
+     ("j" (lambda () (interactive) (hydra-move-splitter-down 3)) "down")
+     ("k" (lambda () (interactive) (hydra-move-splitter-up 3)) "up")
+     ("l" (lambda () (interactive) (hydra-move-splitter-right 3)) "right")))
+
+  ;;* Helpers
+  (use-package windmove
+    :ensure t)
+
+  (defun hydra-move-splitter-left (arg)
+    "Move window splitter left."
+    (interactive "p")
+    (if (let ((windmove-wrap-around))
+          (windmove-find-other-window 'right))
+        (shrink-window-horizontally arg)
+      (enlarge-window-horizontally arg)))
+
+  (defun hydra-move-splitter-right (arg)
+    "Move window splitter right."
+    (interactive "p")
+    (if (let ((windmove-wrap-around))
+          (windmove-find-other-window 'right))
+        (enlarge-window-horizontally arg)
+      (shrink-window-horizontally arg)))
+
+  (defun hydra-move-splitter-up (arg)
+    "Move window splitter up."
+    (interactive "p")
+    (if (let ((windmove-wrap-around))
+          (windmove-find-other-window 'up))
+        (enlarge-window arg)
+      (shrink-window arg)))
+
+  (defun hydra-move-splitter-down (arg)
+    "Move window splitter down."
+    (interactive "p")
+    (if (let ((windmove-wrap-around))
+          (windmove-find-other-window 'up))
+        (shrink-window arg)
+      (enlarge-window arg)))
+
+
 #+END_SRC
+
 * Load external files
   Defines a function to load external configuration lisp files
   
@@ -614,3 +711,7 @@ key presses
 ** Hydra - toggle mode: C-x t
 ** Hydra - navigation mode: C-x j
 ** Hydra - org mode: C-c t
+** To search for word after cursor (repeat M-j to add more words): C-s M-j
+** Indent text block lefr/right: C-< / C->
+** Open emacs shell: F6
+** Hydra - move window splitter around: C-M-s
