@@ -301,6 +301,17 @@ Some common gui related options
   
   #+END_SRC
 
+* Golang
+Golang support
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package go-mode
+    :ensure t)
+  ;;(go-mode-autoloads)
+
+#+END_SRC
+
 * Flycheck
   On the fly syntax check for a huge number of languages: python, c/c++, java etc
   
