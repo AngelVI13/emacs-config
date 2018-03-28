@@ -46,12 +46,14 @@ Some common gui related options
 
   (global-set-key (kbd "C-<") (lambda () (interactive) (shift-left 4)))
   (global-set-key (kbd "C->") (lambda () (interactive) (shift-right 4)))
-  
+
   ;; Adds shortcut to eshell - F6
   (global-set-key (kbd "<f6>") 'eshell)
 
   ;; Use spaces instead of tabs
   (setq-default indent-tabs-mode nil)
+
+  (global-set-key (kbd "C-c C-c") 'comment-or-uncomment-region)
 
 #+END_SRC
 
@@ -236,7 +238,7 @@ Some common gui related options
   Incremental search
 
   !!! Note: In order to use counsel-ag you have to install 
-  the silversearcher-ag package (apt-get linux, choco win?)
+  the silversearcher-ag package (apt-get linux, win - [[https://blog.kowalczyk.info/software/the-silver-searcher-for-windows.html][Link]])
 
   #+BEGIN_SRC emacs-lisp
 
@@ -353,7 +355,7 @@ Some common gui related options
 Tags for code navigation
 
 !!! Note2: In order to use ggtags you have to install the 'global' 
-package (apt-get linux, choco? win)
+package (apt-get linux, win - http://adoxa.altervista.org/global/)
 
 #+BEGIN_SRC emacs-lisp
 
@@ -366,6 +368,8 @@ package (apt-get linux, choco? win)
                 (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
                   (ggtags-mode 1))))
     )
+
+  (global-set-key (kbd "M-*") 'ggtags-prev-mark)
 
 #+END_SRC
 

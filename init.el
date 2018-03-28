@@ -23,7 +23,7 @@
 (add-to-list 'package-archives
              '("melpa" . "https://melpa.org/packages/") t)
 
-             (package-initialize)
+(package-initialize)
 
 
 ;; Bootstrap `use-package'
@@ -48,7 +48,7 @@
  '(org-startup-indented t)
  '(package-selected-packages
    (quote
-    (ggtags hydra better-shell org-gcal which-key web-mode virtualenv use-package undo-tree try tabbar org-plus-contrib org-bullets org-ac noflet matlab-mode jedi iedit hungry-delete flycheck expand-region eval-in-repl ess elpy counsel color-theme beacon aggressive-indent 2048-game))))
+    (dumb-jump counsel-projectile projectile ggtags hydra better-shell org-gcal which-key web-mode virtualenv use-package undo-tree try tabbar org-plus-contrib org-bullets org-ac noflet matlab-mode jedi iedit hungry-delete flycheck expand-region eval-in-repl ess elpy counsel color-theme beacon aggressive-indent 2048-game))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
