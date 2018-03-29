@@ -55,6 +55,11 @@ Some common gui related options
 
   (global-set-key (kbd "C-c C-c") 'comment-or-uncomment-region)
 
+  (add-hook 'c-mode-common-hook
+            (lambda ()
+              (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+                (hs-minor-mode 1))))
+
 #+END_SRC
 
 * Filetype styles
@@ -790,3 +795,4 @@ get all results in a buffer so you can quickly navigate
 ** Projectile - find all occurance of regexp in project: C-c p o
 ** Projectile - dicover projects using the projectile-discover...
 ** Dump-jump(hydra) - jump to definition/usage (multiple languages): C-x C-d
+** Toggle code folding (now set up only for c/c++ & java): C-c @ C-c
