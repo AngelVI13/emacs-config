@@ -60,6 +60,46 @@ Some common gui related options
               (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
                 (hs-minor-mode 1))))
 
+  (global-set-key (kbd "C-c C-f") 'hs-toggle-hiding)
+
+#+END_SRC
+
+* Google translate
+This enables translation of text straight from within Emacs
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package google-translate
+    :ensure t
+    :config
+    (setq-default google-translate-default-target-language "en")
+    (setq-default google-translate-default-source-language "auto")
+    ;;; Bind is run before config and thus the above settings don't work
+    ;;:bind (("C-c t" . google-translate-at-point)
+    ;;       ("C-c T" . google-translate-query-translate))
+    )
+    
+  ;; You can use these instead but its better to use the above
+  (global-set-key "\C-ct" 'google-translate-at-point)
+  (global-set-key "\C-cT" 'google-translate-query-translate)
+
+#+END_SRC
+
+* EMMS music player
+A music player support for emacs
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;(use-package emms
+  ;;  :ensure t)
+
+  ;;(emms-standard)
+  ;;(emms-default-players)
+
+  ;;(setq emms-source-file-default-directory "~/Music/Mp3")
+  ;;(setq emms-player-vlc-command-name
+  ;;  "C:\\Program Files (x86)\\VideoLAN\\VLC")
+    
 #+END_SRC
 
 * Filetype styles
@@ -208,6 +248,52 @@ Some common gui related options
       (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
   #+END_SRC
+
+* Smartparens
+Automatically wrap/rewrap code with ..., expand/contract pairs etc
+You can run M-x sp-cheat-sheet to see all available commands and exmp.
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package smartparens
+    :ensure t
+    :bind (([(meta right)] . sp-forward-sexp)
+           ([(meta left)] . sp-backward-sexp)
+           ([(meta up)] . sp-up-sexp)
+           ([(meta down)] . sp-down-sexp)
+           ("M-]" . sp-unwrap-sexp)
+           ("M-[" . sp-backward-unwrap-sexp)
+           ("C-M-t" . sp-transpose-sexp)))
+
+  (setq-default smartparens-mode t)
+
+  ;; The functions below define wrapping of word/pairs under
+  ;; the cursor with various stuff - parens, brackets, quotes etc.
+  (defmacro def-pairs (pairs)
+    `(progn
+       ,@(loop for (key . val) in pairs
+               collect
+               `(defun ,(read (concat
+                               "wrap-with-"
+                               (prin1-to-string key)
+                               "s"))
+                    (&optional arg)
+                  (interactive "p")
+                  (sp-wrap-with-pair ,val)))))
+
+  (def-pairs ((paren . "(")
+              (bracket . "[")
+              (brace . "{")
+              (single-quote . "'")
+              (double-quote . "\"")
+              (back-quote . "`")))
+
+  (global-set-key (kbd "C-c (") 'wrap-with-parens)
+  (global-set-key (kbd "C-c [") 'wrap-with-brackets)
+  (global-set-key (kbd "C-c {") 'wrap-with-braces)
+  (global-set-key (kbd "C-c \"") 'wrap-with-double-quotes)
+
+#+END_SRC
 
 * ibuffer
   Use ibuffer instead of the traditional buffer. Adds highlighting and displays nicer
@@ -665,7 +751,7 @@ key presses
 
   ;; Hydra for some org-mode stuff
   (global-set-key
-   (kbd "C-c t")
+   (kbd "C-c o")
    (defhydra hydra-global-org (:color blue)
      "Org"
      ("t" org-timer-start "Start Timer")
@@ -796,3 +882,9 @@ get all results in a buffer so you can quickly navigate
 ** Projectile - dicover projects using the projectile-discover...
 ** Dump-jump(hydra) - jump to definition/usage (multiple languages): C-x C-d
 ** Toggle code folding (now set up only for c/c++ & java): C-c @ C-c
+** Google translate some text: C-c T
+** Google translate the word under the cursor: C-c t
+** Navigate on sexp: M-<arrow keys>
+** Wrap word/pairs under cursor with (,[,{," : C-c ( / [ / { / "
+** Transpose expression (i.e. a == b -> b == a): C-M-t
+** Unwrap sexp: M-[
