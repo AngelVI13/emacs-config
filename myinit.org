@@ -183,6 +183,20 @@ key presses
      ("w" whitespace-mode "whitespace")
      ("q" nil "cancel")))
 
+  ;; Hydra for music player actions
+  (global-set-key
+   (kbd "C-x p")
+   (defhydra music-player-control (:color red)
+     "music"
+     ("l" bongo-playlist "playlist")
+     ("n" bongo-play-next "next")
+     ("p" bongo-play-previous "prev")
+     ("r" bongo-play-random "random")
+     ("h" bongo-show "show playing")
+     ("t" bongo-stop "stop")
+     ("s" bongo-play "start")
+     ("c" bongo-pause/resume "pause/resume")))
+
   ;; Hydra for navigation
   ;; !!!!!!!!!!!!!!!!!!!
   ;; Consider adjusting long press of 'p' to go up line by line
@@ -191,7 +205,7 @@ key presses
    (kbd "C-x j")
    (defhydra gotoline 
      ( :pre (linum-mode 1)
-       :post (linum-mode 1))
+            :post (linum-mode 1))
      "goto"
      ("t" (lambda () (interactive)(move-to-window-line-top-bottom 0)) "top")
      ("b" (lambda () (interactive)(move-to-window-line-top-bottom -1)) "bottom")
@@ -330,6 +344,16 @@ A music player support for emacs
   ;;  "C:\\Program Files (x86)\\VideoLAN\\VLC")
     
 #+END_SRC
+** Bongo music player
+Small music player. Github page with info and shortcut descriptions [[https://github.com/dbrock/bongo/tree/3d246be1e8d14865f5253567ab8fee5d4e9c470c][Bongo]]
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package bongo
+    :ensure t)
+
+#+END_SRC
+
 ** Better-shell
 A better shell for emacs
 
@@ -965,3 +989,4 @@ get all results in a buffer so you can quickly navigate
 ** Transpose expression (i.e. a == b -> b == a): C-M-t
 ** Unwrap sexp: M-[
 ** Move text/region up/down: M-up / M-down
+** Hydra music player: C-x p
