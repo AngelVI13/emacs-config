@@ -1,6 +1,33 @@
 #+STARTUP: overview
 
+* Emacs options
+** Common
+Emacs settings
+
+#+BEGIN_SRC emacs-lisp
+
+  ;; Allows for better interprogram clipboard integration		  
+  (setq save-interprogram-paste-before-kill t)
+
+  ;; Automatically reload files that have been modified on the filesystem
+  (global-auto-revert-mode 1) ;; you might not want this
+  (setq auto-revert-verbose nil) ;; or this
+
+#+END_SRC
+
+** try
+  Package that allows you to 'try' a plugin without permanently installing it
+  After restart of emacs, the package that was 'tried' will not be there
+
+  #+BEGIN_SRC emacs-lisp
+  
+    (use-package try
+      :ensure t)
+  
+  #+END_SRC
+
 * GUI options
+** Common
 Some common gui related options
 
 #+BEGIN_SRC emacs-lisp
@@ -62,170 +89,21 @@ Some common gui related options
 
   (global-set-key (kbd "C-c C-f") 'hs-toggle-hiding)
 
-#+END_SRC
+  ;; Highlights the current line
+  (global-hl-line-mode t)
 
-* Google translate
-This enables translation of text straight from within Emacs
-
-#+BEGIN_SRC emacs-lisp
-
-  (use-package google-translate
+  ;; A small animation when the cursor jumps between buffers
+  ;; or across pages
+  (use-package beacon
     :ensure t
     :config
-    (setq-default google-translate-default-target-language "en")
-    (setq-default google-translate-default-source-language "auto")
-    ;;; Bind is run before config and thus the above settings don't work
-    ;;:bind (("C-c t" . google-translate-at-point)
-    ;;       ("C-c T" . google-translate-query-translate))
+    (beacon-mode 1)
+                                          ; (setq beacon-color "#666600")
     )
-    
-  ;; You can use these instead but its better to use the above
-  (global-set-key "\C-ct" 'google-translate-at-point)
-  (global-set-key "\C-cT" 'google-translate-query-translate)
 
 #+END_SRC
 
-* EMMS music player
-A music player support for emacs
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;(use-package emms
-  ;;  :ensure t)
-
-  ;;(emms-standard)
-  ;;(emms-default-players)
-
-  ;;(setq emms-source-file-default-directory "~/Music/Mp3")
-  ;;(setq emms-player-vlc-command-name
-  ;;  "C:\\Program Files (x86)\\VideoLAN\\VLC")
-    
-#+END_SRC
-
-* Filetype styles
-** C/C++ style
-   #+BEGIN_SRC emacs-lisp
-
-     (setq c-default-style "stroustrup"
-          c-basic-offset 4)
-
-   #+END_SRC
-
-* try
-  Package that allows you to 'try' a plugin without permanently installing it
-  After restart of emacs, the package that was 'tried' will not be there
-
-  #+BEGIN_SRC emacs-lisp
-  
-    (use-package try
-      :ensure t)
-  
-  #+END_SRC
-
-* Org-mode
-  Install org mode for note taking, todos, tasks, presentations and many more.
-
-  #+BEGIN_SRC emacs-lisp
-
-    (use-package org
-      :mode (("\\.org$" . org-mode))
-      :ensure org-plus-contrib
-      :config
-      (progn
-        ;; config stuff
-        ))
-
-    (setenv "BROWSER" "firefox-browser")
-
-    (use-package org-bullets
-      :ensure t
-      :config
-      (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
-
-    (custom-set-variables
-     '(org-directory "~/orgfiles")
-     '(org-default-notes-file (concat org-directory "/notes.org"))
-     '(org-export-html-postamble nil)
-     '(org-hide-leading-stars t)
-     '(org-startup-folded (quote overview))
-     '(org-startup-indented t)
-     )
-
-    (setq org-file-apps
-          (append '(
-                    ("\\.pdf\\'" . "evince %s")
-                    ) org-file-apps ))
-
-    (global-set-key "\C-ca" 'org-agenda)
-
-    (use-package org-ac
-      :ensure t
-      :init (progn
-              (require 'org-ac)
-              (org-ac/config-default)
-              ))
-
-    (global-set-key (kbd "C-c c") 'org-capture)
-
-    (setq org-agenda-files (list "~/orgfiles/gcal.org"
-                                 "~/orgfiles/index.org"
-                                   "~/orgfiles/schedule.org"))
-    (setq org-capture-templates
-          '(("a" "Appointment" entry (file  "~/orgfiles/gcal.org" )
-             "* %?\n\n%^T\n\n:PROPERTIES:\n\n:END:\n\n")
-            ("n" "Note" entry (file+headline "~/orgfiles/notes.org" "Notes")
-             "* Note %?\n%T")
-            ("l" "Link" entry (file+headline "~/orgfiles/links.org" "Links")
-             "* %? %^L %^g \n%T" :prepend t)
-            ("b" "Book idea" entry (file+headline "~/orgfiles/index.org" "Book ideas")
-             "* %?\n%T" :prepend t)
-            ("t" "To Do Item" entry (file+headline "~/orgfiles/index.org" "To Do")
-             "* TODO %?\n%u" :prepend t)))
-
-    ;; using %i in the template above allows you to insert a selected text
-    ;; when C-c c is pressed
-
-    (defadvice org-capture-finalize 
-        (after delete-capture-frame activate)  
-      "Advise capture-finalize to close the frame"  
-      (if (equal "capture" (frame-parameter nil 'name))  
-          (delete-frame)))
-
-    (defadvice org-capture-destroy 
-        (after delete-capture-frame activate)  
-      "Advise capture-destroy to close the frame"  
-      (if (equal "capture" (frame-parameter nil 'name))  
-          (delete-frame)))  
-
-    (use-package noflet
-      :ensure t )
-
-    (defun make-capture-frame ()
-      "Create a new frame and run org-capture."
-      (interactive)
-      (make-frame '((name . "capture")))
-      (select-frame-by-name "capture")
-      (delete-other-windows)
-      (noflet ((switch-to-buffer-other-window (buf) (switch-to-buffer buf)))
-        (org-capture)))
-
-    (setq package-check-signature nil)
-
-
-    (use-package org-gcal
-      :ensure t
-      :config
-      (setq org-gcal-client-id "860194293573-uienoduetdjfm6q6njtceid57sg7j7rp.apps.googleusercontent.com"
-            org-gcal-client-secret "Rn33L6iU9yCHpSisy_zsJxUb"
-            org-gcal-file-alist '(("a.v.iliev13@gmail.com" .  "~/orgfiles/gcal.org"))))
-
-    (add-hook 'org-agenda-mode-hook (lambda () (org-gcal-sync) ))
-    (add-hook 'org-capture-after-finalize-hook (lambda () (org-gcal-sync) ))
-
-
-  #+END_SRC
-
-* which-key
+** which-key
   Brings up some help when key is pressed
 
   #+BEGIN_SRC emacs-lisp
@@ -236,66 +114,7 @@ A music player support for emacs
       (which-key-mode))
   
   #+END_SRC
-  
-* org-bullets
-  Makes bullets prettier in org-mode
-
-  #+BEGIN_SRC emacs-lisp
-  
-    (use-package org-bullets
-      :ensure t
-      :config
-      (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
-
-  #+END_SRC
-
-* Smartparens
-Automatically wrap/rewrap code with ..., expand/contract pairs etc
-You can run M-x sp-cheat-sheet to see all available commands and exmp.
-
-#+BEGIN_SRC emacs-lisp
-
-  (use-package smartparens
-    :ensure t
-    :bind (([(meta right)] . sp-forward-sexp)
-           ([(meta left)] . sp-backward-sexp)
-           ([(meta up)] . sp-up-sexp)
-           ([(meta down)] . sp-down-sexp)
-           ("M-]" . sp-unwrap-sexp)
-           ("M-[" . sp-backward-unwrap-sexp)
-           ("C-M-t" . sp-transpose-sexp)))
-
-  (setq-default smartparens-mode t)
-
-  ;; The functions below define wrapping of word/pairs under
-  ;; the cursor with various stuff - parens, brackets, quotes etc.
-  (defmacro def-pairs (pairs)
-    `(progn
-       ,@(loop for (key . val) in pairs
-               collect
-               `(defun ,(read (concat
-                               "wrap-with-"
-                               (prin1-to-string key)
-                               "s"))
-                    (&optional arg)
-                  (interactive "p")
-                  (sp-wrap-with-pair ,val)))))
-
-  (def-pairs ((paren . "(")
-              (bracket . "[")
-              (brace . "{")
-              (single-quote . "'")
-              (double-quote . "\"")
-              (back-quote . "`")))
-
-  (global-set-key (kbd "C-c (") 'wrap-with-parens)
-  (global-set-key (kbd "C-c [") 'wrap-with-brackets)
-  (global-set-key (kbd "C-c {") 'wrap-with-braces)
-  (global-set-key (kbd "C-c \"") 'wrap-with-double-quotes)
-
-#+END_SRC
-
-* ibuffer
+** ibuffer
   Use ibuffer instead of the traditional buffer. Adds highlighting and displays nicer
   
   #+BEGIN_SRC emacs-lisp 
@@ -303,11 +122,7 @@ You can run M-x sp-cheat-sheet to see all available commands and exmp.
     (defalias 'list-buffers 'ibuffer)
   
   #+END_SRC
-  
-* Emmet mode
-!Check out emmet mode for rapid web dev
-
-* Ace-window
+** Ace-window
   Window manager
 
   #+BEGIN_SRC emacs-lisp 
@@ -324,214 +139,7 @@ You can run M-x sp-cheat-sheet to see all available commands and exmp.
 	 ))
 
   #+END_SRC
-
-* Swiper & Counsel
-  Incremental search
-
-  !!! Note: In order to use counsel-ag you have to install 
-  the silversearcher-ag package (apt-get linux, win - [[https://blog.kowalczyk.info/software/the-silver-searcher-for-windows.html][Link]])
-
-  #+BEGIN_SRC emacs-lisp
-
-  ;; it looks like counsel is a requirement for swiper
-  (use-package counsel
-    :ensure t
-    :bind
-    (("M-y" . counsel-yank-pop)
-      :map ivy-minibuffer-map
-      ("M-y" . ivy-next-line)))
-
-  (use-package ivy
-    :ensure t
-    :diminish (ivy-mode)
-    :bind (("C-x b" . ivy-switch-buffer))
-    :config
-    (ivy-mode 1)
-    (setq ivy-use-virtual-buffers t)
-    (setq ivy-display-style 'fancy))
-
-
-  (use-package swiper
-    :ensure try
-    :bind (("C-s" . swiper)
-	   ("C-r" . swiper)
-	   ("C-c C-r" . ivy-resume)
-	   ("M-x" . counsel-M-x)
-	   ("C-x C-f" . counsel-find-file))
-    :config
-    (progn
-      (ivy-mode 1)
-      (setq ivy-use-virtual-buffers t)
-      (setq ivy-display-style 'fancy)
-      (define-key read-expression-map (kbd "C-r") 'counsel-expression-history)
-      ))
-  #+END_SRC
-* Avy
-  Go to word starting with a letter entered by user
-
-  #+BEGIN_SRC emacs-lisp 
-
-  (use-package avy
-    :ensure t
-    :bind ("M-s" . avy-goto-word-1))
-
-  #+END_SRC
-
-* Auto-complete
-  Autocompletion package
-
-  #+BEGIN_SRC emacs-lisp
-  
-  (use-package auto-complete
-    :ensure t
-    :init
-    (progn
-      (ac-config-default)
-      (global-auto-complete-mode t)
-      ))
-  
-  #+END_SRC
-
-* Golang
-Golang support
-
-#+BEGIN_SRC emacs-lisp
-
-  (use-package go-mode
-    :ensure t)
-  ;;(go-mode-autoloads)
-
-#+END_SRC
-
-* Flycheck
-  On the fly syntax check for a huge number of languages: python, c/c++, java etc
-  
-  #+BEGIN_SRC emacs-lisp
-  
-  (use-package flycheck
-    :ensure t
-    :init 
-    (global-flycheck-mode t)) 
-  
-  #+END_SRC
-
-* Python
-** Setup Jedi autocompletion
-    Jedi autocompletion. Similar functionality is contained inside Elpy
-
-    #+BEGIN_SRC emacs-lisp
-      
-    ;  (use-package jedi
-    ;    :ensure t
-    ;    :init
-    ;     (add-hook 'python-mode-hook 'jedi:setup)
-    ;     (add-hook 'python-mode-hook 'jedi:ac-setup))
-  
-    #+END_SRC
-
-** Setup python interpreter
-    Sets up python interpreter
- 
-    #+BEGIN_SRC emacs-lisp
-      
-      (setq py-python-command "python")
-      (setq python-shell-interpreter "python")
-   
-    #+END_SRC
-
-** Elpy
-   Package that enables python IDE-like features
-   NOTE: also check out the python requirements for elpy here:
-   [[https://github.com/jorgenschaefer/elpy][Github Elpy]]
-
-   #+BEGIN_SRC emacs-lisp
-   
-     (use-package elpy
-       :ensure t
-       :config 
-         (elpy-enable))
-   
-   #+END_SRC
-
-* Ggtags
-Tags for code navigation
-
-!!! Note2: In order to use ggtags you have to install the 'global' 
-package (apt-get linux, win - http://adoxa.altervista.org/global/)
-
-#+BEGIN_SRC emacs-lisp
-
-  ;; tags for code navigation
-  (use-package ggtags
-    :ensure t
-    :config 
-    (add-hook 'c-mode-common-hook
-              (lambda ()
-                (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-                  (ggtags-mode 1))))
-    )
-
-  (global-set-key (kbd "M-*") 'ggtags-prev-mark)
-
-#+END_SRC
-
-* Projectile
-Enables management of multiple projects
-
-#+BEGIN_SRC emacs-lisp
-
-  (use-package projectile
-    :ensure t
-    :config
-    (projectile-global-mode)
-    (setq projectile-completion-system 'ivy))
-
-  (use-package counsel-projectile
-    :ensure t)
-  (counsel-projectile-mode)
-
-#+END_SRC
-
-* Dump-jump
-Similar functionality to ggtags i.e. jump to declaration/usage etc
-Works for multiple languages
-
-#+BEGIN_SRC emacs-lisp
-  (use-package dumb-jump
-    :bind (("M-g o" . dumb-jump-go-other-window)
-           ("M-g j" . dumb-jump-go)
-           ("M-g x" . dumb-jump-go-prefer-external)
-           ("M-g z" . dumb-jump-go-prefer-external-other-window))
-    :config (setq dumb-jump-selector 'ivy) ;; (setq dumb-jump-selector 'helm)
-    :ensure)
-
-  (global-set-key
-   (kbd "C-x C-d")
-   (defhydra dumb-jump-hydra (:color blue :columns 3)
-     "Dumb Jump"
-     ("j" dumb-jump-go "Go")
-     ("o" dumb-jump-go-other-window "Other window")
-     ("e" dumb-jump-go-prefer-external "Go external")
-     ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
-     ("i" dumb-jump-go-prompt "Prompt")
-     ("l" dumb-jump-quick-look "Quick look")
-     ("b" dumb-jump-back "Back")))
-
-#+END_SRC
-
-* Yasnippet
-  Includes popular snippets for python, c/c++, java etc
-  
-  #+BEGIN_SRC emacs-lisp
-    
-    (use-package yasnippet
-      :ensure t
-      :init
-        (yas-global-mode 1))
-  
-  #+END_SRC
-
-* Nlinum-relative
+** Nlinum-relative
   Relative numbers
 
   #+BEGIN_SRC emacs-lisp
@@ -550,161 +158,7 @@ Works for multiple languages
     ;;(setq nlinum-relative-offset 0)                 ;; 1 if you want 0, 2, 3...
 
   #+END_SRC
-
-* Evil
-  Vim support for emacs
-
-  #+BEGIN_SRC emacs-lisp
-
-    ;;(require 'evil)
-    ;;  (evil-mode 1)
-  
-  #+END_SRC
-
-* Undo Tree
-  Shows a visual representation of your edit history
-  That looks like the roots of a tree so you can visually
-  navigate through your changes
-
-  #+BEGIN_SRC emacs-lisp
-  
-    (use-package undo-tree
-      :ensure t
-      :init
-        (global-undo-tree-mode))
-  
-  #+END_SRC
-
-* Misc packages
-  
-  #+BEGIN_SRC emacs-lisp
-
-    ;; Highlights the current line
-    (global-hl-line-mode t)
-
-    ;; A small animation when the cursor jumps between buffers
-    ;; or across pages
-    (use-package beacon
-      :ensure t
-      :config
-      (beacon-mode 1)
-      ; (setq beacon-color "#666600")
-      )
-
-    ;; deletes multiple empty lines and extra spaces
-    (use-package hungry-delete
-      :ensure t
-      :config
-      (global-hungry-delete-mode))
-
-    ;; easily adjusts indentation with tab key
-    (use-package aggressive-indent
-      :ensure t
-      :config
-      (global-aggressive-indent-mode 1))
-
-    ;; Select an ever expanding region of text
-    (use-package expand-region
-      :ensure t
-      :config
-      (global-set-key (kbd "C-=") 'er/expand-region))
-
-    ;; Allows for better interprogram clipboard integration		  
-    (setq save-interprogram-paste-before-kill t)
-
-    ;; Automatically reload files that have been modified on the filesystem
-    (global-auto-revert-mode 1) ;; you might not want this
-    (setq auto-revert-verbose nil) ;; or this		  
-
-  #+END_SRC
-
-* Iedit and narrow/widen dwim
-  These plugins allow for easier and more powerful editting by enabling
-  multiple cursor editting and narrowing/expanding of selection to edit
-
-  #+BEGIN_SRC emacs-lisp
-
-    ;; enables multiple cursors editting of selected text
-    ;; use C-; to toggle it on/off
-    (use-package iedit
-      :ensure t)
-
-    ;; Narrow selection for editting and only perform operations
-    ;; on that part of the text without affecting the full text
-    ;; keybinding is C-x n
-    (defun narrow-or-widen-dwim (p)
-      "Widen if buffer is narrowed, narrow-dwim otherwise.
-	Dwim means: region, org-src-block, org-subtree, or
-	defun, whichever applies first. Narrowing to
-	org-src-block actually calls `org-edit-src-code'.
-
-      With prefix P, don't widen, just narrow even if buffer
-       is already narrowed."
-      (interactive "P")
-      (declare (interactive-only))
-      (cond ((and (buffer-narrowed-p) (not p)) (widen))
-	    ((region-active-p)
-	     (narrow-to-region (region-beginning)
-			       (region-end)))
-	    ((derived-mode-p 'org-mode)
-	     ;; `org-edit-src-code' is not a real narrowing
-	     ;; command. Remove this first conditional if
-	     ;; you don't want it.
-	     (cond ((ignore-errors (org-edit-src-code) t)
-		    (delete-other-windows))
-		   ((ignore-errors (org-narrow-to-block) t))
-		   (t (org-narrow-to-subtree))))
-	    ((derived-mode-p 'latex-mode)
-	     (LaTeX-narrow-to-environment))
-	    (t (narrow-to-defun))))
-
-    ;(define-key endless/toggle-map "n"
-    ;  #'narrow-or-widen-dwim)
-    ;; This line actually replaces Emacs' entire narrowing
-    ;; keymap, that's how much I like this command. Only
-    ;; copy it if that's what you want.
-    (define-key ctl-x-map "n" #'narrow-or-widen-dwim)
-    (add-hook 'LaTeX-mode-hook
-	      (lambda ()
-		(define-key LaTeX-mode-map "\C-xn"
-		  nil)))
-
-  #+END_SRC
-
-* Web-mode
-  Mode that provides autocompletion, tags matching, etc. for web dev
-
-  #+BEGIN_SRC emacs-lisp
-
-    (use-package web-mode
-    :ensure t
-    :config
-	 (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
-	 (setq web-mode-engines-alist
-	       '(("django"    . "\\.html\\'")))
-	 (setq web-mode-ac-sources-alist
-	       '(("css" . (ac-source-css-property))
-		 ("html" . (ac-source-words-in-buffer ac-source-abbrev))))
-    
-    (setq web-mode-enable-auto-closing t))
-    (setq web-mode-enable-auto-quoting t)
-  
-  #+END_SRC
-
-* Better-shell
-A better shell for emacs
-
-#+BEGIN_SRC emacs-lisp
-
-  (use-package better-shell
-    :ensure t
-    :bind (("C-'" . better-shell-shell)
-	     ;("C-;" . better-shell-remote-open)
-             ))
-
-#+END_SRC
-
-* Hydra
+** Hydra
 This allows you to bring up quick access to different modes
 and stay within those modes. For example by a key press you
 can enter org-mode and get a list of options accessible by more
@@ -810,9 +264,631 @@ key presses
         (shrink-window arg)
       (enlarge-window arg)))
 
+#+END_SRC
+** Powerline
+Emacs implementation of the Vim Powerline
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;(use-package powerline
+  ;;  :ensure t)
+
+  ;;(powerline-default-theme)
 
 #+END_SRC
 
+** Hightlight indentaion
+Hightlights indentation level
+
+#+BEGIN_SRC emacs-lisp
+
+  ;; Start the mode automatically in most programming modes (Emacs 24 and above):
+  (add-hook 'prog-mode-hook 
+            (lambda ()
+              (highlight-indentation-mode)
+              (set-face-background 'highlight-indentation-face "#e3e3d3")
+              (set-face-background 'highlight-indentation-current-column-face "#c3b3b3")))
+
+
+#+END_SRC
+
+* External tools
+** Google translate
+This enables translation of text straight from within Emacs
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package google-translate
+    :ensure t
+    :config
+    (setq-default google-translate-default-target-language "en")
+    (setq-default google-translate-default-source-language "auto")
+    ;;; Bind is run before config and thus the above settings don't work
+    ;;:bind (("C-c t" . google-translate-at-point)
+    ;;       ("C-c T" . google-translate-query-translate))
+    )
+    
+  ;; You can use these instead but its better to use the above
+  (global-set-key "\C-ct" 'google-translate-at-point)
+  (global-set-key "\C-cT" 'google-translate-query-translate)
+
+#+END_SRC
+
+** EMMS music player
+A music player support for emacs
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;(use-package emms
+  ;;  :ensure t)
+
+  ;;(emms-standard)
+  ;;(emms-default-players)
+
+  ;;(setq emms-source-file-default-directory "~/Music/Mp3")
+  ;;(setq emms-player-vlc-command-name
+  ;;  "C:\\Program Files (x86)\\VideoLAN\\VLC")
+    
+#+END_SRC
+** Better-shell
+A better shell for emacs
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package better-shell
+    :ensure t
+    :bind (("C-'" . better-shell-shell)
+	     ;("C-;" . better-shell-remote-open)
+             ))
+
+#+END_SRC
+* Filetype styles
+** C/C++ style
+   Set default indentation style for c/c++ files
+
+   #+BEGIN_SRC emacs-lisp
+
+     (setq c-default-style "stroustrup"
+          c-basic-offset 4)
+
+   #+END_SRC
+* Programming
+** COMMENT Smartparens
+Automatically wrap/rewrap code with ..., expand/contract pairs etc
+You can run M-x sp-cheat-sheet to see all available commands and exmp.
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package smartparens
+    :ensure t
+    :bind (([(ctrl meta right)] . sp-forward-sexp)
+           ([(ctrl meta left)] . sp-backward-sexp)
+           ([(ctrl meta up)] . sp-up-sexp)
+           ([(ctrl meta down)] . sp-down-sexp)
+           ("M-]" . sp-unwrap-sexp)
+           ("M-[" . sp-backward-unwrap-sexp)
+           ("C-M-t" . sp-transpose-sexp)))
+
+  (setq-default smartparens-mode t)
+
+  ;; The functions below define wrapping of word/pairs under
+  ;; the cursor with various stuff - parens, brackets, quotes etc.
+  ;; loop is replace with cl-loop cause my linux machine has an older
+  ;; version of emacs -> backward compatibility
+  (defmacro def-pairs (pairs)
+    `(progn
+       ,@(cl-loop for (key . val) in pairs
+               collect
+               `(defun ,(read (concat
+                               "wrap-with-"
+                               (prin1-to-string key)
+                               "s"))
+                    (&optional arg)
+                  (interactive "p")
+                  (sp-wrap-with-pair ,val)))))
+
+  (def-pairs ((paren . "(")
+              (bracket . "[")
+              (brace . "{")
+              (single-quote . "'")
+              (double-quote . "\"")
+              (back-quote . "`")))
+
+  (global-set-key (kbd "C-c (") 'wrap-with-parens)
+  (global-set-key (kbd "C-c [") 'wrap-with-brackets)
+  (global-set-key (kbd "C-c {") 'wrap-with-braces)
+  (global-set-key (kbd "C-c \"") 'wrap-with-double-quotes)
+
+#+END_SRC
+  
+** Rainbow-delimiters
+Colourful parenthesis to help you navigate through nested source code
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;(use-package rainbow-delimiters
+  ;;  :ensure t)
+
+  ;; Start the mode automatically in most programming modes (Emacs 24 and above):
+  ;;(add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
+
+#+END_SRC
+
+** Emmet mode
+!Check out emmet mode for rapid web dev
+** Flycheck
+  On the fly syntax check for a huge number of languages: python, c/c++, java etc
+  
+  #+BEGIN_SRC emacs-lisp
+  
+  (use-package flycheck
+    :ensure t
+    :init 
+    (global-flycheck-mode t)) 
+  
+  #+END_SRC
+** Golang
+Golang support
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package go-mode
+    :ensure t)
+  ;;(go-mode-autoloads)
+
+#+END_SRC
+** Python
+*** Setup Jedi autocompletion
+    Jedi autocompletion. Similar functionality is contained inside Elpy
+
+    #+BEGIN_SRC emacs-lisp
+      
+    ;  (use-package jedi
+    ;    :ensure t
+    ;    :init
+    ;     (add-hook 'python-mode-hook 'jedi:setup)
+    ;     (add-hook 'python-mode-hook 'jedi:ac-setup))
+  
+    #+END_SRC
+
+*** Setup python interpreter
+    Sets up python interpreter
+ 
+    #+BEGIN_SRC emacs-lisp
+      
+      (setq py-python-command "python")
+      (setq python-shell-interpreter "python")
+   
+    #+END_SRC
+
+*** Elpy
+   Package that enables python IDE-like features
+   NOTE: also check out the python requirements for elpy here:
+   [[https://github.com/jorgenschaefer/elpy][Github Elpy]]
+
+   #+BEGIN_SRC emacs-lisp
+   
+     (use-package elpy
+       :ensure t
+       :config 
+         (elpy-enable))
+   
+   #+END_SRC
+
+** Ggtags
+Tags for code navigation
+
+!!! Note2: In order to use ggtags you have to install the 'global' 
+package (apt-get linux, win - http://adoxa.altervista.org/global/)
+
+#+BEGIN_SRC emacs-lisp
+
+  ;; tags for code navigation
+  (use-package ggtags
+    :ensure t
+    :config 
+    (add-hook 'c-mode-common-hook
+              (lambda ()
+                (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+                  (ggtags-mode 1))))
+    )
+
+  (global-set-key (kbd "M-*") 'ggtags-prev-mark)
+
+#+END_SRC
+** Yasnippet
+  Includes popular snippets for python, c/c++, java etc
+  
+  #+BEGIN_SRC emacs-lisp
+    
+    (use-package yasnippet
+      :ensure t
+      :init
+        (yas-global-mode 1))
+  
+  #+END_SRC
+** Dump-jump
+Similar functionality to ggtags i.e. jump to declaration/usage etc
+Works for multiple languages
+
+#+BEGIN_SRC emacs-lisp
+  (use-package dumb-jump
+    :bind (("M-g o" . dumb-jump-go-other-window)
+           ("M-g j" . dumb-jump-go)
+           ("M-g x" . dumb-jump-go-prefer-external)
+           ("M-g z" . dumb-jump-go-prefer-external-other-window))
+    :config (setq dumb-jump-selector 'ivy) ;; (setq dumb-jump-selector 'helm)
+    :ensure)
+
+  (global-set-key
+   (kbd "C-x C-d")
+   (defhydra dumb-jump-hydra (:color blue :columns 3)
+     "Dumb Jump"
+     ("j" dumb-jump-go "Go")
+     ("o" dumb-jump-go-other-window "Other window")
+     ("e" dumb-jump-go-prefer-external "Go external")
+     ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
+     ("i" dumb-jump-go-prompt "Prompt")
+     ("l" dumb-jump-quick-look "Quick look")
+     ("b" dumb-jump-back "Back")))
+
+#+END_SRC
+** Projectile
+Enables management of multiple projects
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package projectile
+    :ensure t
+    :config
+    (projectile-global-mode)
+    (setq projectile-completion-system 'ivy))
+
+  (use-package counsel-projectile
+    :ensure t)
+  (counsel-projectile-mode)
+
+#+END_SRC
+** Web-mode
+  Mode that provides autocompletion, tags matching, etc. for web dev
+
+  #+BEGIN_SRC emacs-lisp
+
+    (use-package web-mode
+    :ensure t
+    :config
+	 (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+	 (setq web-mode-engines-alist
+	       '(("django"    . "\\.html\\'")))
+	 (setq web-mode-ac-sources-alist
+	       '(("css" . (ac-source-css-property))
+		 ("html" . (ac-source-words-in-buffer ac-source-abbrev))))
+    
+    (setq web-mode-enable-auto-closing t))
+    (setq web-mode-enable-auto-quoting t)
+  
+  #+END_SRC
+
+* Org
+** Org-mode
+  Install org mode for note taking, todos, tasks, presentations and many more.
+
+  #+BEGIN_SRC emacs-lisp
+
+    (use-package org
+      :mode (("\\.org$" . org-mode))
+      :ensure org-plus-contrib
+      :config
+      (progn
+        ;; config stuff
+        ))
+
+    (setenv "BROWSER" "firefox-browser")
+
+    (use-package org-bullets
+      :ensure t
+      :config
+      (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+
+    (custom-set-variables
+     '(org-directory "~/orgfiles")
+     '(org-default-notes-file (concat org-directory "/notes.org"))
+     '(org-export-html-postamble nil)
+     '(org-hide-leading-stars t)
+     '(org-startup-folded (quote overview))
+     '(org-startup-indented t)
+     )
+
+    (setq org-file-apps
+          (append '(
+                    ("\\.pdf\\'" . "evince %s")
+                    ) org-file-apps ))
+
+    (global-set-key "\C-ca" 'org-agenda)
+
+    (use-package org-ac
+      :ensure t
+      :init (progn
+              (require 'org-ac)
+              (org-ac/config-default)
+              ))
+
+    (global-set-key (kbd "C-c c") 'org-capture)
+
+    (setq org-agenda-files (list "~/orgfiles/gcal.org"
+                                 "~/orgfiles/index.org"
+                                   "~/orgfiles/schedule.org"))
+    (setq org-capture-templates
+          '(("a" "Appointment" entry (file  "~/orgfiles/gcal.org" )
+             "* %?\n\n%^T\n\n:PROPERTIES:\n\n:END:\n\n")
+            ("n" "Note" entry (file+headline "~/orgfiles/notes.org" "Notes")
+             "* Note %?\n%T")
+            ("l" "Link" entry (file+headline "~/orgfiles/links.org" "Links")
+             "* %? %^L %^g \n%T" :prepend t)
+            ("b" "Book idea" entry (file+headline "~/orgfiles/index.org" "Book ideas")
+             "* %?\n%T" :prepend t)
+            ("t" "To Do Item" entry (file+headline "~/orgfiles/index.org" "To Do")
+             "* TODO %?\n%u" :prepend t)))
+
+    ;; using %i in the template above allows you to insert a selected text
+    ;; when C-c c is pressed
+
+    (defadvice org-capture-finalize 
+        (after delete-capture-frame activate)  
+      "Advise capture-finalize to close the frame"  
+      (if (equal "capture" (frame-parameter nil 'name))  
+          (delete-frame)))
+
+    (defadvice org-capture-destroy 
+        (after delete-capture-frame activate)  
+      "Advise capture-destroy to close the frame"  
+      (if (equal "capture" (frame-parameter nil 'name))  
+          (delete-frame)))  
+
+    (use-package noflet
+      :ensure t )
+
+    (defun make-capture-frame ()
+      "Create a new frame and run org-capture."
+      (interactive)
+      (make-frame '((name . "capture")))
+      (select-frame-by-name "capture")
+      (delete-other-windows)
+      (noflet ((switch-to-buffer-other-window (buf) (switch-to-buffer buf)))
+        (org-capture)))
+
+    (setq package-check-signature nil)
+
+
+    (use-package org-gcal
+      :ensure t
+      :config
+      (setq org-gcal-client-id "860194293573-uienoduetdjfm6q6njtceid57sg7j7rp.apps.googleusercontent.com"
+            org-gcal-client-secret "Rn33L6iU9yCHpSisy_zsJxUb"
+            org-gcal-file-alist '(("a.v.iliev13@gmail.com" .  "~/orgfiles/gcal.org"))))
+
+    (add-hook 'org-agenda-mode-hook (lambda () (org-gcal-sync) ))
+    (add-hook 'org-capture-after-finalize-hook (lambda () (org-gcal-sync) ))
+
+
+  #+END_SRC
+** org-bullets
+  Makes bullets prettier in org-mode
+
+  #+BEGIN_SRC emacs-lisp
+  
+    (use-package org-bullets
+      :ensure t
+      :config
+      (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+
+  #+END_SRC
+* Text editing & navigation
+** Markdown-mode
+Markdown mode for emacs. Documentation can be found here [[https://github.com/jrblevin/markdown-mode/tree/668de4a965980d618637a3b5754e721b54c51e83][Github page]]
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package markdown-mode
+    :ensure t
+    :mode (("README\\.md\\'" . gfm-mode)
+           ("\\.md\\'" . markdown-mode)
+           ("\\.markdown\\'" . markdown-mode))
+    :init (setq markdown-command "multimarkdown"))
+
+#+END_SRC
+
+** Swiper & Counsel
+  Incremental search
+
+  !!! Note: In order to use counsel-ag you have to install 
+  the silversearcher-ag package (apt-get linux, win - [[https://blog.kowalczyk.info/software/the-silver-searcher-for-windows.html][Link]])
+
+  #+BEGIN_SRC emacs-lisp
+
+  ;; it looks like counsel is a requirement for swiper
+  (use-package counsel
+    :ensure t
+    :bind
+    (("M-y" . counsel-yank-pop)
+      :map ivy-minibuffer-map
+      ("M-y" . ivy-next-line)))
+
+  (use-package ivy
+    :ensure t
+    :diminish (ivy-mode)
+    :bind (("C-x b" . ivy-switch-buffer))
+    :config
+    (ivy-mode 1)
+    (setq ivy-use-virtual-buffers t)
+    (setq ivy-display-style 'fancy))
+
+
+  (use-package swiper
+    :ensure try
+    :bind (("C-s" . swiper)
+	   ("C-r" . swiper)
+	   ("C-c C-r" . ivy-resume)
+	   ("M-x" . counsel-M-x)
+	   ("C-x C-f" . counsel-find-file))
+    :config
+    (progn
+      (ivy-mode 1)
+      (setq ivy-use-virtual-buffers t)
+      (setq ivy-display-style 'fancy)
+      (define-key read-expression-map (kbd "C-r") 'counsel-expression-history)
+      ))
+  #+END_SRC
+** Avy
+  Go to word starting with a letter entered by user
+
+  #+BEGIN_SRC emacs-lisp 
+
+  (use-package avy
+    :ensure t
+    :bind ("M-s" . avy-goto-word-1))
+
+  #+END_SRC
+** Evil
+  Vim support for emacs
+
+  #+BEGIN_SRC emacs-lisp
+
+    ;;(require 'evil)
+    ;;  (evil-mode 1)
+  
+  #+END_SRC
+** Iedit and narrow/widen dwim
+  These plugins allow for easier and more powerful editting by enabling
+  multiple cursor editting and narrowing/expanding of selection to edit
+
+  #+BEGIN_SRC emacs-lisp
+
+    ;; enables multiple cursors editting of selected text
+    ;; use C-; to toggle it on/off
+    (use-package iedit
+      :ensure t)
+
+    ;; Narrow selection for editting and only perform operations
+    ;; on that part of the text without affecting the full text
+    ;; keybinding is C-x n
+    (defun narrow-or-widen-dwim (p)
+      "Widen if buffer is narrowed, narrow-dwim otherwise.
+	Dwim means: region, org-src-block, org-subtree, or
+	defun, whichever applies first. Narrowing to
+	org-src-block actually calls `org-edit-src-code'.
+
+      With prefix P, don't widen, just narrow even if buffer
+       is already narrowed."
+      (interactive "P")
+      (declare (interactive-only))
+      (cond ((and (buffer-narrowed-p) (not p)) (widen))
+	    ((region-active-p)
+	     (narrow-to-region (region-beginning)
+			       (region-end)))
+	    ((derived-mode-p 'org-mode)
+	     ;; `org-edit-src-code' is not a real narrowing
+	     ;; command. Remove this first conditional if
+	     ;; you don't want it.
+	     (cond ((ignore-errors (org-edit-src-code) t)
+		    (delete-other-windows))
+		   ((ignore-errors (org-narrow-to-block) t))
+		   (t (org-narrow-to-subtree))))
+	    ((derived-mode-p 'latex-mode)
+	     (LaTeX-narrow-to-environment))
+	    (t (narrow-to-defun))))
+
+    ;(define-key endless/toggle-map "n"
+    ;  #'narrow-or-widen-dwim)
+    ;; This line actually replaces Emacs' entire narrowing
+    ;; keymap, that's how much I like this command. Only
+    ;; copy it if that's what you want.
+    (define-key ctl-x-map "n" #'narrow-or-widen-dwim)
+    (add-hook 'LaTeX-mode-hook
+	      (lambda ()
+		(define-key LaTeX-mode-map "\C-xn"
+		  nil)))
+
+  #+END_SRC
+** Undo Tree
+  Shows a visual representation of your edit history
+  That looks like the roots of a tree so you can visually
+  navigate through your changes
+
+  #+BEGIN_SRC emacs-lisp
+  
+    (use-package undo-tree
+      :ensure t
+      :init
+        (global-undo-tree-mode))
+  
+  #+END_SRC
+** Hungry delete
+Deletes multiple empty lines and extra spaces
+
+#+BEGIN_SRC emacs-lisp
+ 
+  (use-package hungry-delete
+    :ensure t
+    :config
+    (global-hungry-delete-mode))
+
+#+END_SRC
+
+** Aggressive Indent
+    Easily adjusts indentation with tab key
+
+    #+BEGIN_SRC emacs-lisp
+
+      ;; Disable electric-indent-mode
+      (electric-indent-mode -1)
+      ;; Disable electric-indent-mode if set by any other major mode
+      (add-hook 'after-change-major-mode-hook (lambda() (electric-indent-mode -1)))
+
+      (use-package aggressive-indent
+        :ensure t
+        :config
+        (global-aggressive-indent-mode 1))
+
+    #+END_SRC
+
+** Expand region
+Select an ever expanding region of text
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package expand-region
+    :ensure t
+    :config
+    (global-set-key (kbd "C-=") 'er/expand-region))
+
+#+END_SRC
+** Auto-complete
+  Autocompletion package
+
+  #+BEGIN_SRC emacs-lisp
+  
+  (use-package auto-complete
+    :ensure t
+    :init
+    (progn
+      (ac-config-default)
+      (global-auto-complete-mode t)
+      ))
+  
+  #+END_SRC
+** Move-text
+Move line/selected region up/down
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package move-text
+    :ensure t
+    :bind
+    (([(meta up)] . move-text-up)
+     ([(meta down)] . move-text-down)))
+
+#+END_SRC
 * Load external files
   Defines a function to load external configuration lisp files
   
@@ -884,7 +960,8 @@ get all results in a buffer so you can quickly navigate
 ** Toggle code folding (now set up only for c/c++ & java): C-c @ C-c
 ** Google translate some text: C-c T
 ** Google translate the word under the cursor: C-c t
-** Navigate on sexp: M-<arrow keys>
+** Navigate on sexp: C-M-<arrow keys>
 ** Wrap word/pairs under cursor with (,[,{," : C-c ( / [ / { / "
 ** Transpose expression (i.e. a == b -> b == a): C-M-t
 ** Unwrap sexp: M-[
+** Move text/region up/down: M-up / M-down
