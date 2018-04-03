@@ -34,7 +34,7 @@ Some common gui related options
 
   ;; Enable selection highlighting and change color
   (transient-mark-mode t)
-  (set-face-attribute 'region nil :background "#666")
+  (set-face-attribute 'region nil :background "#a3a3a3")
 
   ;; Enable showing of matching parenthesis by default
 
@@ -118,27 +118,66 @@ Some common gui related options
   Use ibuffer instead of the traditional buffer. Adds highlighting and displays nicer
   
   #+BEGIN_SRC emacs-lisp 
-    
+
     (defalias 'list-buffers 'ibuffer)
-  
+
+    (global-set-key (kbd "C-x C-b") 'ibuffer)
+    (setq ibuffer-saved-filter-groups
+          (quote (("default"
+                   ("dired" (mode . dired-mode))
+                   ("org" (name . "^.*org$"))
+
+                   ("web" (or (mode . web-mode) (mode . js2-mode)))
+                   ("shell" (or (mode . eshell-mode) (mode . shell-mode)))
+                   ("mu4e" (name . "\*mu4e\*"))
+                   ("programming" (or
+                                   (mode . python-mode)
+                                   (mode . c++-mode)))
+                   ("emacs" (or
+                             (name . "^\\*scratch\\*$")
+                             (name . "^\\*Messages\\*$")))
+                   ))))
+    (add-hook 'ibuffer-mode-hook
+              (lambda ()
+                (ibuffer-auto-mode 1)
+                (ibuffer-switch-to-saved-filter-groups "default")))
+
+    ;; don't show these
+                                            ;(add-to-list 'ibuffer-never-show-predicates "zowie")
+    ;; Don't show filter groups if there are no buffers in that group
+    (setq ibuffer-show-empty-filter-groups nil)
+
+    ;; Don't ask for confirmation to delete marked buffers
+    (setq ibuffer-expert t)
+
   #+END_SRC
+
 ** Ace-window
   Window manager
 
   #+BEGIN_SRC emacs-lisp 
 
-  ;; progn allows to call multiple functions within the initialization of a package
-  (use-package ace-window
-    :ensure t
-    :init
-    (progn
-      (global-set-key [remap other-window] 'ace-window)
-      (custom-set-faces
-         '(aw-leading-char-face
-	 ((t (:inherit ace-jump-face-foreground :height 2.0))))) 
-	 ))
+    ;; progn allows to call multiple functions within the initialization of a package
+    (use-package ace-window
+      :ensure t
+      :init
+      (progn
+        (global-set-key [remap other-window] 'ace-window)
+        (custom-set-faces
+           '(aw-leading-char-face
+           ((t (:inherit ace-jump-face-foreground :height 2.0))))) 
+           ))
+
+    (defun swap-windows ()
+      "Swap windows and leave focus in original window"
+      (interactive)
+      (ace-swap-window)
+      (aw-flip-window))
+
+    (global-set-key (kbd "C-x f") 'swap-windows)
 
   #+END_SRC
+
 ** Nlinum-relative
   Relative numbers
 
@@ -284,10 +323,10 @@ Emacs implementation of the Vim Powerline
 
 #+BEGIN_SRC emacs-lisp
 
-  ;;(use-package powerline
-  ;;  :ensure t)
+  (use-package powerline
+    :ensure t)
 
-  ;;(powerline-default-theme)
+  (powerline-default-theme)
 
 #+END_SRC
 
@@ -352,6 +391,13 @@ Small music player. Github page with info and shortcut descriptions [[https://gi
   (use-package bongo
     :ensure t)
 
+  ;; For windows you have to download and put mplayer.exe on Path
+  ;; This is needed since I coudln't get vlc to work on Windows
+  (defun load-mplayer-backend()
+    "Loads the mplayer backend. Use this for windows"
+    (interactive)
+    (setq-default bongo-enabled-backends '(mplayer)))
+
 #+END_SRC
 
 ** Better-shell
@@ -377,7 +423,7 @@ A better shell for emacs
 
    #+END_SRC
 * Programming
-** COMMENT Smartparens
+** Smartparens
 Automatically wrap/rewrap code with ..., expand/contract pairs etc
 You can run M-x sp-cheat-sheet to see all available commands and exmp.
 
@@ -990,3 +1036,4 @@ get all results in a buffer so you can quickly navigate
 ** Unwrap sexp: M-[
 ** Move text/region up/down: M-up / M-down
 ** Hydra music player: C-x p
+** Swap windows and leave focus in orig. window: C-x f
