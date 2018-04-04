@@ -25,6 +25,19 @@ Emacs settings
       :ensure t)
   
   #+END_SRC
+* Load external files
+  Defines a function to load external configuration lisp files
+  
+  #+BEGIN_SRC emacs-lisp
+
+    (defun load-if-exists (f)
+    "Load the elisp file only if it exists and is readable"
+      (if (file-readable-p f)
+          (load-file f)))
+
+    ;(load-if-exists "~/some_file.el")
+  
+  #+END_SRC
 
 * GUI options
 ** Common
@@ -101,6 +114,8 @@ Some common gui related options
                                           ; (setq beacon-color "#666600")
     )
 
+  (toggle-scroll-bar -1)
+
 #+END_SRC
 
 ** which-key
@@ -132,10 +147,14 @@ Some common gui related options
                    ("mu4e" (name . "\*mu4e\*"))
                    ("programming" (or
                                    (mode . python-mode)
-                                   (mode . c++-mode)))
+                                   (mode . c++-mode)
+                                   (mode . c-mode)
+                                   (mode . go-mode)
+                                   (mode . hexl-mode)))
                    ("emacs" (or
                              (name . "^\\*scratch\\*$")
-                             (name . "^\\*Messages\\*$")))
+                             (name . "^\\*Messages\\*$")
+                             (name . "^\\*Backtrace\\*$")))
                    ))))
     (add-hook 'ibuffer-mode-hook
               (lambda ()
@@ -342,6 +361,123 @@ Hightlights indentation level
               (set-face-background 'highlight-indentation-face "#e3e3d3")
               (set-face-background 'highlight-indentation-current-column-face "#c3b3b3")))
 
+
+#+END_SRC
+
+** Treemacs file browser
+A file browser panel for emacs 
+
+#+BEGIN_SRC emacs-lisp
+
+  ;(use-package treemacs
+  ;  :ensure t
+  ;  :defer t
+  ;  :init
+  ;  (with-eval-after-load 'winum
+  ;    (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
+  ;  :config
+  ;  (progn
+  ;    (use-package treemacs-evil
+  ;      :ensure t
+  ;      :demand t)
+  ;    (setq treemacs-change-root-without-asking nil
+  ;          treemacs-collapse-dirs              (if (executable-find "python") 3 0)
+  ;          treemacs-file-event-delay           5000
+  ;          treemacs-follow-after-init          t
+  ;          treemacs-follow-recenter-distance   0.1
+  ;          treemacs-goto-tag-strategy          'refetch-index
+  ;          treemacs-indentation                2
+  ;          treemacs-indentation-string         " "
+  ;          treemacs-is-never-other-window      nil
+  ;          treemacs-never-persist              nil
+  ;          treemacs-no-png-images              nil
+  ;          treemacs-recenter-after-file-follow nil
+  ;          treemacs-recenter-after-tag-follow  nil
+  ;          treemacs-show-hidden-files          t
+  ;          treemacs-silent-filewatch           nil
+  ;          treemacs-silent-refresh             nil
+  ;          treemacs-sorting                    'alphabetic-desc
+  ;          treemacs-tag-follow-cleanup         t
+  ;          treemacs-tag-follow-delay           1.5
+  ;          treemacs-width                      35)
+
+  ;    (treemacs-follow-mode t)
+  ;    (treemacs-filewatch-mode t)
+  ;    (pcase (cons (not (null (executable-find "git")))
+  ;                 (not (null (executable-find "python3"))))
+  ;      (`(t . t)
+  ;       (treemacs-git-mode 'extended))
+  ;      (`(t . _)
+  ;       (treemacs-git-mode 'simple))))
+  ;  :bind
+  ;  (:map global-map
+  ;        ([f8]         . treemacs-toggle)
+  ;        ("M-0"        . treemacs-select-window)
+  ;        ("C-c 1"      . treemacs-delete-other-windows)
+  ;        ("M-p ft"     . treemacs-toggle)
+  ;        ("M-p fT"     . treemacs)
+  ;        ("M-p fB"     . treemacs-bookmark)
+  ;        ("M-p f C-t"  . treemacs-find-file)
+  ;        ("M-p f M-t"  . treemacs-find-tag)))
+
+  ;(use-package treemacs-projectile
+  ;  :defer t
+  ;  :ensure t
+  ;  :config
+  ;  (setq treemacs-header-function #'treemacs-projectile-create-header)
+  ;  :bind (:map global-map
+  ;              ("M-p fP" . treemacs-projectile)
+  ;              ("M-p fp" . treemacs-projectile-toggle)))
+
+#+END_SRC
+
+** Dired
+Directory browsing tool. Download .el file from [[https://www.emacswiki.org/emacs/DiredPlus][EmacsWiki]]
+Once downloaded run setup-diredp to enable dired+ functionality
+
+#+BEGIN_SRC emacs-lisp
+
+  (defun setup-diredp()
+    "Loads dired+.el and configs some display settings"
+    (interactive)
+    ;; The dired+ package has to be installed manually
+    ;; By downloading from the EmacsWiki(see above)
+    (load-if-exists "~/.emacs.d/lisp/dired+.el")
+    ;; Shows shortened version of the files i.e. only name and ext.
+    (setq diredp-hide-details-initially-flag nil)
+    )
+
+  ;; Better support for regexp
+  (use-package pcre2el
+    :ensure t
+    :config 
+    (pcre-mode)
+    )
+
+  ;; The two packages below expand the Counsel/Ivy functionality
+  (use-package wgrep
+    :ensure t
+    )
+
+  ;; For this to work you need to install the fzf package!!!!!!!!!!!
+  ;; Fzf source: https://github.com/junegunn/fzf
+  ;; Consider installing WSL on windows https://docs.microsoft.com/en-us/windows/wsl/install-win10
+  (setq counsel-fzf-cmd "fzf -f %s")
+
+#+END_SRC
+
+** Scroll half-page
+Half page scroll implementation
+
+#+BEGIN_SRC emacs-lisp
+
+  ;; Scrolls down half a page and moves cursor
+  (global-set-key [(control ?v)]
+                  (lambda () (interactive (next-line (/ (window-height (selected-window)) 2)))))
+
+  ;; Scrolls up half a page and moves cursor
+  (global-set-key [(control shift ?v)]
+                  (lambda () (interactive (previous-line (/ (window-height (selected-window)) 2)))))
 
 #+END_SRC
 
@@ -638,7 +774,6 @@ Enables management of multiple projects
     (setq web-mode-enable-auto-quoting t)
   
   #+END_SRC
-
 * Org
 ** Org-mode
   Install org mode for note taking, todos, tasks, presentations and many more.
@@ -753,6 +888,24 @@ Enables management of multiple projects
       (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
   #+END_SRC
+** Org-reveal
+Tool for making presentations. Look at RawGit for hosting gitpages!!
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package ox-reveal
+    :ensure ox-reveal)
+
+  (setq org-reveal-root "http://cdn.jsdelivr.net/reveal.js/3.0.0/")
+  ;; The below line is to display Latex nicely
+  (setq org-reveal-mathjax t)
+
+  ;; html syntax highlighting
+  (use-package htmlize
+    :ensure t)
+
+#+END_SRC
+
 * Text editing & navigation
 ** Markdown-mode
 Markdown mode for emacs. Documentation can be found here [[https://github.com/jrblevin/markdown-mode/tree/668de4a965980d618637a3b5754e721b54c51e83][Github page]]
@@ -959,20 +1112,6 @@ Move line/selected region up/down
      ([(meta down)] . move-text-down)))
 
 #+END_SRC
-* Load external files
-  Defines a function to load external configuration lisp files
-  
-  #+BEGIN_SRC emacs-lisp
-
-    (defun load-if-exists (f)
-    "Load the elisp file only if it exists and is readable"
-      (if (file-readable-p f)
-          (load-file f)))
-
-    ;(load-if-exists "~/some_file.el")
-  
-  #+END_SRC
-
 * useful alternatives
   Alternatives to the packages described above
 
@@ -1037,3 +1176,5 @@ get all results in a buffer so you can quickly navigate
 ** Move text/region up/down: M-up / M-down
 ** Hydra music player: C-x p
 ** Swap windows and leave focus in orig. window: C-x f
+** Open dired of the dir. inside which the file in your buffer is located: C-x C-j 
+** Scroll down/up half a page and move cursor: C-v / C-Shift-v
