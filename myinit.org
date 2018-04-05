@@ -852,7 +852,7 @@ Enables management of multiple projects
       (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
     (custom-set-variables
-     '(org-directory "~/orgfiles")
+     '(org-directory "~/Dropbox/orgfiles")
      '(org-default-notes-file (concat org-directory "/notes.org"))
      '(org-export-html-postamble nil)
      '(org-hide-leading-stars t)
@@ -876,19 +876,19 @@ Enables management of multiple projects
 
     (global-set-key (kbd "C-c c") 'org-capture)
 
-    (setq org-agenda-files (list "~/orgfiles/gcal.org"
-                                 "~/orgfiles/index.org"
-                                   "~/orgfiles/schedule.org"))
+    (setq org-agenda-files (list "~/Dropbox/orgfiles/gcal.org"
+                                 "~/Dropbox/orgfiles/index.org"
+                                 "~/Dropbox/orgfiles/schedule.org"))
     (setq org-capture-templates
-          '(("a" "Appointment" entry (file  "~/orgfiles/gcal.org" )
+          '(("a" "Appointment" entry (file  "~/Dropbox/orgfiles/gcal.org" )
              "* %?\n\n%^T\n\n:PROPERTIES:\n\n:END:\n\n")
-            ("n" "Note" entry (file+headline "~/orgfiles/notes.org" "Notes")
+            ("n" "Note" entry (file+headline "~/Dropbox/orgfiles/notes.org" "Notes")
              "* Note %?\n%T")
-            ("l" "Link" entry (file+headline "~/orgfiles/links.org" "Links")
+            ("l" "Link" entry (file+headline "~/Dropbox/orgfiles/links.org" "Links")
              "* %? %^L %^g \n%T" :prepend t)
-            ("b" "Book idea" entry (file+headline "~/orgfiles/index.org" "Book ideas")
+            ("b" "Book idea" entry (file+headline "~/Dropbox/orgfiles/index.org" "Book ideas")
              "* %?\n%T" :prepend t)
-            ("t" "To Do Item" entry (file+headline "~/orgfiles/index.org" "To Do")
+            ("t" "To Do Item" entry (file+headline "~/Dropbox/orgfiles/index.org" "To Do")
              "* TODO %?\n%u" :prepend t)))
 
     ;; using %i in the template above allows you to insert a selected text
@@ -926,11 +926,10 @@ Enables management of multiple projects
       :config
       (setq org-gcal-client-id "860194293573-uienoduetdjfm6q6njtceid57sg7j7rp.apps.googleusercontent.com"
             org-gcal-client-secret "Rn33L6iU9yCHpSisy_zsJxUb"
-            org-gcal-file-alist '(("a.v.iliev13@gmail.com" .  "~/orgfiles/gcal.org"))))
+            org-gcal-file-alist '(("a.v.iliev13@gmail.com" .  "~/Dropbox/orgfiles/gcal.org"))))
 
     (add-hook 'org-agenda-mode-hook (lambda () (org-gcal-sync) ))
     (add-hook 'org-capture-after-finalize-hook (lambda () (org-gcal-sync) ))
-
 
   #+END_SRC
 ** org-bullets
