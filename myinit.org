@@ -13,6 +13,20 @@ Emacs settings
   (global-auto-revert-mode 1) ;; you might not want this
   (setq auto-revert-verbose nil) ;; or this
 
+  ;; Turn auto save off. e.g. periodically make recovery copy file named #filename#
+  (setq auto-save-default nil) ; t for on, nil for off
+  ;; Turn auto backup off e.g periodically make backup copy file name ~filename
+  (setq make-backup-files nil)
+
+  ;; Real autosave directly to file
+  (use-package real-auto-save
+    :ensure t)
+
+  ;; Automatically start for programming modes
+  (add-hook 'prog-mode-hook 'real-auto-save-mode)
+
+  (setq real-auto-save-interval 5) ;; in seconsd
+
 #+END_SRC
 
 ** try
@@ -93,7 +107,7 @@ Some common gui related options
   ;; Use spaces instead of tabs
   (setq-default indent-tabs-mode nil)
 
-  (global-set-key (kbd "C-c C-c") 'comment-or-uncomment-region)
+  (global-set-key (kbd "C-c 1 c") 'comment-or-uncomment-region)
 
   (add-hook 'c-mode-common-hook
             (lambda ()
@@ -115,6 +129,9 @@ Some common gui related options
     )
 
   (toggle-scroll-bar -1)
+
+  ;; If you type while there is a selected region, it will delet the region and replace it with the text
+  (delete-selection-mode 1)
 
 #+END_SRC
 
@@ -254,6 +271,15 @@ key presses
      ("t" bongo-stop "stop")
      ("s" bongo-play "start")
      ("c" bongo-pause/resume "pause/resume")))
+
+  ;; Hydra for multiple-cursors
+  (global-set-key
+    (kbd "C-;")
+    (defhydra multiple-cursors-en (:color red)
+      "multi-cursors"
+      (">" mc/mark-next-like-this "mark next")
+      ("<" mc/mark-previous-like-this "mark prev")
+      ("." mc/mark-all-like-this "mark all")))
 
   ;; Hydra for navigation
   ;; !!!!!!!!!!!!!!!!!!!
@@ -548,6 +574,32 @@ A better shell for emacs
              ))
 
 #+END_SRC
+** Pandoc file import/exporter
+A file importer/exporter from org file to any other file format and vice versa
+Requirements for this package: install pandoc >=1.13 [[https://pandoc.org/installing.html][Pandoc page]]
+In order to get an org file from other files, type in the following shell cmd:
+
+pandoc -o output_name.org -f input_format -t org input_filename.extension
+
+for example:
+
+pandoc -o test.org -f html -t org test.html
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package ox-pandoc
+    :ensure t)
+
+  ;; default options for all output formats
+  (setq org-pandoc-options '((standalone . t)))
+  ;; cancel above settings only for 'docx' format
+  (setq org-pandoc-options-for-docx '((standalone . nil)))
+  ;; special settings for beamer-pdf and latex-pdf exporters
+  (setq org-pandoc-options-for-beamer-pdf '((pdf-engine . "xelatex")))
+  (setq org-pandoc-options-for-latex-pdf '((pdf-engine . "xelatex")))
+
+#+END_SRC
+
 * Filetype styles
 ** C/C++ style
    Set default indentation style for c/c++ files
@@ -754,7 +806,11 @@ Enables management of multiple projects
     :ensure t)
   (counsel-projectile-mode)
 
+  ;;(add-to-list 'projectile-globally-ignored-directories "*templates/cache")
+  (add-to-list 'projectile-globally-ignored-files "*.map")
+
 #+END_SRC
+
 ** Web-mode
   Mode that provides autocompletion, tags matching, etc. for web dev
 
@@ -890,6 +946,7 @@ Enables management of multiple projects
   #+END_SRC
 ** Org-reveal
 Tool for making presentations. Look at RawGit for hosting gitpages!!
+An example presentation can be found here [[https://revealjs.com/#/][Example]]
 
 #+BEGIN_SRC emacs-lisp
 
@@ -929,38 +986,45 @@ Markdown mode for emacs. Documentation can be found here [[https://github.com/jr
 
   #+BEGIN_SRC emacs-lisp
 
-  ;; it looks like counsel is a requirement for swiper
-  (use-package counsel
-    :ensure t
-    :bind
-    (("M-y" . counsel-yank-pop)
-      :map ivy-minibuffer-map
-      ("M-y" . ivy-next-line)))
+    ;; it looks like counsel is a requirement for swiper
+    (use-package counsel
+      :ensure t
+      :bind
+      (("M-y" . counsel-yank-pop)
+        :map ivy-minibuffer-map
+        ("M-y" . ivy-next-line)))
 
-  (use-package ivy
-    :ensure t
-    :diminish (ivy-mode)
-    :bind (("C-x b" . ivy-switch-buffer))
-    :config
-    (ivy-mode 1)
-    (setq ivy-use-virtual-buffers t)
-    (setq ivy-display-style 'fancy))
-
-
-  (use-package swiper
-    :ensure try
-    :bind (("C-s" . swiper)
-	   ("C-r" . swiper)
-	   ("C-c C-r" . ivy-resume)
-	   ("M-x" . counsel-M-x)
-	   ("C-x C-f" . counsel-find-file))
-    :config
-    (progn
+    (use-package ivy
+      :ensure t
+      :diminish (ivy-mode)
+      :bind (("C-x b" . ivy-switch-buffer))
+      :config
       (ivy-mode 1)
       (setq ivy-use-virtual-buffers t)
-      (setq ivy-display-style 'fancy)
-      (define-key read-expression-map (kbd "C-r") 'counsel-expression-history)
-      ))
+      (setq ivy-display-style 'fancy))
+
+
+    (use-package swiper
+      :ensure try
+      :bind (("C-s" . swiper)
+             ("C-r" . swiper)
+             ("C-c C-r" . ivy-resume)
+             ("M-x" . counsel-M-x)
+             ("C-x C-f" . counsel-find-file))
+      :config
+      (progn
+        (ivy-mode 1)
+        (setq ivy-use-virtual-buffers t)
+        (setq ivy-display-style 'fancy)
+        (define-key read-expression-map (kbd "C-r") 'counsel-expression-history)
+        ))
+
+    (use-package ag
+      :ensure t)
+
+    (use-package wgrep-ag
+      :ensure t)
+
   #+END_SRC
 ** Avy
   Go to word starting with a letter entered by user
@@ -983,14 +1047,14 @@ Markdown mode for emacs. Documentation can be found here [[https://github.com/jr
   #+END_SRC
 ** Iedit and narrow/widen dwim
   These plugins allow for easier and more powerful editting by enabling
-  multiple cursor editting and narrowing/expanding of selection to edit
+  multiple occurance editting and narrowing/expanding of selection to edit
 
   #+BEGIN_SRC emacs-lisp
 
     ;; enables multiple cursors editting of selected text
     ;; use C-; to toggle it on/off
-    (use-package iedit
-      :ensure t)
+    ;;(use-package iedit
+    ;;  :ensure t)
 
     ;; Narrow selection for editting and only perform operations
     ;; on that part of the text without affecting the full text
@@ -1053,8 +1117,10 @@ Deletes multiple empty lines and extra spaces
  
   (use-package hungry-delete
     :ensure t
-    :config
-    (global-hungry-delete-mode))
+    ;; Do not enable by default cause its annoying
+    ;:config
+    ;(global-hungry-delete-mode)
+    )
 
 #+END_SRC
 
@@ -1110,6 +1176,16 @@ Move line/selected region up/down
     :bind
     (([(meta up)] . move-text-up)
      ([(meta down)] . move-text-down)))
+
+#+END_SRC
+** Multiple-cursors
+Similar to iedit adds multiple cursors at keyword or occurance of selection
+The keybindings for this are defined in a Hydra: C-;
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package multiple-cursors
+    :ensure t)
 
 #+END_SRC
 * useful alternatives
@@ -1178,3 +1254,5 @@ get all results in a buffer so you can quickly navigate
 ** Swap windows and leave focus in orig. window: C-x f
 ** Open dired of the dir. inside which the file in your buffer is located: C-x C-j 
 ** Scroll down/up half a page and move cursor: C-v / C-Shift-v
+** In order to eddit a search buffer and thus edit all results from search: C-c C-p
+** To apply changes from above operation (search buffer edditing): C-c C-e 
