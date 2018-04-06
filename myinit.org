@@ -214,25 +214,18 @@ Some common gui related options
 
   #+END_SRC
 
-** Nlinum-relative
-  Relative numbers
+** Linum-relative
+Relative numbers package
 
-  #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 
-    ;;(use-package nlinum-relative
-    ;;  :config
-    ;;  ;; something else you want
-    ;;  (nlinum-relative-setup-evil)
-    ;;  (add-hook 'prog-mode-hook 'nlinum-relative-mode))
+  (use-package linum-relative
+    :ensure t)
 
-    ;;(require 'nlinum-relative)
-    ;;(nlinum-relative-setup-evil)                    ;; setup for evil
-    ;;(add-hook 'prog-mode-hook 'nlinum-relative-mode)
-    ;;(setq nlinum-relative-redisplay-delay 0)      ;; delay
-    ;;(setq nlinum-relative-current-symbol "")      ;; or "" for display current line number
-    ;;(setq nlinum-relative-offset 0)                 ;; 1 if you want 0, 2, 3...
+  (add-hook 'prog-mode-hook 'linum-relative-mode)
 
-  #+END_SRC
+#+END_SRC
+
 ** Hydra
 This allows you to bring up quick access to different modes
 and stay within those modes. For example by a key press you
@@ -271,15 +264,6 @@ key presses
      ("t" bongo-stop "stop")
      ("s" bongo-play "start")
      ("c" bongo-pause/resume "pause/resume")))
-
-  ;; Hydra for multiple-cursors
-  (global-set-key
-    (kbd "C-;")
-    (defhydra multiple-cursors-en (:color red)
-      "multi-cursors"
-      (">" mc/mark-next-like-this "mark next")
-      ("<" mc/mark-previous-like-this "mark prev")
-      ("." mc/mark-all-like-this "mark all")))
 
   ;; Hydra for navigation
   ;; !!!!!!!!!!!!!!!!!!!
@@ -387,74 +371,6 @@ Hightlights indentation level
               (set-face-background 'highlight-indentation-face "#e3e3d3")
               (set-face-background 'highlight-indentation-current-column-face "#c3b3b3")))
 
-
-#+END_SRC
-
-** Treemacs file browser
-A file browser panel for emacs 
-
-#+BEGIN_SRC emacs-lisp
-
-  ;(use-package treemacs
-  ;  :ensure t
-  ;  :defer t
-  ;  :init
-  ;  (with-eval-after-load 'winum
-  ;    (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
-  ;  :config
-  ;  (progn
-  ;    (use-package treemacs-evil
-  ;      :ensure t
-  ;      :demand t)
-  ;    (setq treemacs-change-root-without-asking nil
-  ;          treemacs-collapse-dirs              (if (executable-find "python") 3 0)
-  ;          treemacs-file-event-delay           5000
-  ;          treemacs-follow-after-init          t
-  ;          treemacs-follow-recenter-distance   0.1
-  ;          treemacs-goto-tag-strategy          'refetch-index
-  ;          treemacs-indentation                2
-  ;          treemacs-indentation-string         " "
-  ;          treemacs-is-never-other-window      nil
-  ;          treemacs-never-persist              nil
-  ;          treemacs-no-png-images              nil
-  ;          treemacs-recenter-after-file-follow nil
-  ;          treemacs-recenter-after-tag-follow  nil
-  ;          treemacs-show-hidden-files          t
-  ;          treemacs-silent-filewatch           nil
-  ;          treemacs-silent-refresh             nil
-  ;          treemacs-sorting                    'alphabetic-desc
-  ;          treemacs-tag-follow-cleanup         t
-  ;          treemacs-tag-follow-delay           1.5
-  ;          treemacs-width                      35)
-
-  ;    (treemacs-follow-mode t)
-  ;    (treemacs-filewatch-mode t)
-  ;    (pcase (cons (not (null (executable-find "git")))
-  ;                 (not (null (executable-find "python3"))))
-  ;      (`(t . t)
-  ;       (treemacs-git-mode 'extended))
-  ;      (`(t . _)
-  ;       (treemacs-git-mode 'simple))))
-  ;  :bind
-  ;  (:map global-map
-  ;        ([f8]         . treemacs-toggle)
-  ;        ("M-0"        . treemacs-select-window)
-  ;        ("C-c 1"      . treemacs-delete-other-windows)
-  ;        ("M-p ft"     . treemacs-toggle)
-  ;        ("M-p fT"     . treemacs)
-  ;        ("M-p fB"     . treemacs-bookmark)
-  ;        ("M-p f C-t"  . treemacs-find-file)
-  ;        ("M-p f M-t"  . treemacs-find-tag)))
-
-  ;(use-package treemacs-projectile
-  ;  :defer t
-  ;  :ensure t
-  ;  :config
-  ;  (setq treemacs-header-function #'treemacs-projectile-create-header)
-  ;  :bind (:map global-map
-  ;              ("M-p fP" . treemacs-projectile)
-  ;              ("M-p fp" . treemacs-projectile-toggle)))
-
 #+END_SRC
 
 ** Dired
@@ -468,27 +384,32 @@ Once downloaded run setup-diredp to enable dired+ functionality
     (interactive)
     ;; The dired+ package has to be installed manually
     ;; By downloading from the EmacsWiki(see above)
-    (load-if-exists "~/.emacs.d/lisp/dired+.el")
-    ;; Shows shortened version of the files i.e. only name and ext.
-    (setq diredp-hide-details-initially-flag nil)
+    (if (file-readable-p "~/.emacs.d/lisp/dired+.el")
+        (progn ;; progn is needed in order to exec multiple statements
+          (load-file "~/.emacs.d/lisp/dired+.el")
+          ;; Shows shortened version of the files i.e. only name and ext.
+          (setq diredp-hide-details-initially-flag nil)))
     )
 
-  ;; Better support for regexp
-  (use-package pcre2el
-    :ensure t
-    :config 
-    (pcre-mode)
-    )
+    ;; If dired++.el file exists then load it and set some configuration for it.
+    (setup-diredp)
 
-  ;; The two packages below expand the Counsel/Ivy functionality
-  (use-package wgrep
-    :ensure t
-    )
+    ;; Better support for regexp
+    (use-package pcre2el
+      :ensure t
+      :config 
+      (pcre-mode)
+      )
 
-  ;; For this to work you need to install the fzf package!!!!!!!!!!!
-  ;; Fzf source: https://github.com/junegunn/fzf
-  ;; Consider installing WSL on windows https://docs.microsoft.com/en-us/windows/wsl/install-win10
-  (setq counsel-fzf-cmd "fzf -f %s")
+    ;; The two packages below expand the Counsel/Ivy functionality
+    (use-package wgrep
+      :ensure t
+      )
+
+    ;; For this to work you need to install the fzf package!!!!!!!!!!!
+    ;; Fzf source: https://github.com/junegunn/fzf
+    ;; Consider installing WSL on windows https://docs.microsoft.com/en-us/windows/wsl/install-win10
+    (setq counsel-fzf-cmd "fzf -f %s")
 
 #+END_SRC
 
@@ -529,22 +450,6 @@ This enables translation of text straight from within Emacs
 
 #+END_SRC
 
-** EMMS music player
-A music player support for emacs
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;(use-package emms
-  ;;  :ensure t)
-
-  ;;(emms-standard)
-  ;;(emms-default-players)
-
-  ;;(setq emms-source-file-default-directory "~/Music/Mp3")
-  ;;(setq emms-player-vlc-command-name
-  ;;  "C:\\Program Files (x86)\\VideoLAN\\VLC")
-    
-#+END_SRC
 ** Bongo music player
 Small music player. Github page with info and shortcut descriptions [[https://github.com/dbrock/bongo/tree/3d246be1e8d14865f5253567ab8fee5d4e9c470c][Bongo]]
 
@@ -562,18 +467,6 @@ Small music player. Github page with info and shortcut descriptions [[https://gi
 
 #+END_SRC
 
-** Better-shell
-A better shell for emacs
-
-#+BEGIN_SRC emacs-lisp
-
-  (use-package better-shell
-    :ensure t
-    :bind (("C-'" . better-shell-shell)
-	     ;("C-;" . better-shell-remote-open)
-             ))
-
-#+END_SRC
 ** Pandoc file import/exporter
 A file importer/exporter from org file to any other file format and vice versa
 Requirements for this package: install pandoc >=1.13 [[https://pandoc.org/installing.html][Pandoc page]]
@@ -659,19 +552,6 @@ You can run M-x sp-cheat-sheet to see all available commands and exmp.
 
 #+END_SRC
   
-** Rainbow-delimiters
-Colourful parenthesis to help you navigate through nested source code
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;(use-package rainbow-delimiters
-  ;;  :ensure t)
-
-  ;; Start the mode automatically in most programming modes (Emacs 24 and above):
-  ;;(add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
-
-#+END_SRC
-
 ** Emmet mode
 !Check out emmet mode for rapid web dev
 ** Flycheck
@@ -696,19 +576,6 @@ Golang support
 
 #+END_SRC
 ** Python
-*** Setup Jedi autocompletion
-    Jedi autocompletion. Similar functionality is contained inside Elpy
-
-    #+BEGIN_SRC emacs-lisp
-      
-    ;  (use-package jedi
-    ;    :ensure t
-    ;    :init
-    ;     (add-hook 'python-mode-hook 'jedi:setup)
-    ;     (add-hook 'python-mode-hook 'jedi:ac-setup))
-  
-    #+END_SRC
-
 *** Setup python interpreter
     Sets up python interpreter
  
@@ -812,7 +679,7 @@ Enables management of multiple projects
 #+END_SRC
 
 ** Web-mode
-  Mode that provides autocompletion, tags matching, etc. for web dev
+Mode that provides autocompletion, tags matching, etc. for web dev
 
   #+BEGIN_SRC emacs-lisp
 
@@ -878,7 +745,15 @@ Enables management of multiple projects
 
     (setq org-agenda-files (list "~/Dropbox/orgfiles/gcal.org"
                                  "~/Dropbox/orgfiles/index.org"
-                                 "~/Dropbox/orgfiles/schedule.org"))
+                                 ;"~/Dropbox/orgfiles/schedule.org"
+                                 ))
+
+    (setq org-tag-alist '(("WORK")
+                          ("SPORT")
+                          ("PROJECTS")
+                          ("BOOK")
+                          ("MISC")))
+
     (setq org-capture-templates
           '(("a" "Appointment" entry (file  "~/Dropbox/orgfiles/gcal.org" )
              "* %?\n\n%^T\n\n:PROPERTIES:\n\n:END:\n\n")
@@ -889,7 +764,7 @@ Enables management of multiple projects
             ("b" "Book idea" entry (file+headline "~/Dropbox/orgfiles/index.org" "Book ideas")
              "* %?\n%T" :prepend t)
             ("t" "To Do Item" entry (file+headline "~/Dropbox/orgfiles/index.org" "To Do")
-             "* TODO %?\n%u" :prepend t)))
+             "* TODO %?\nSCHEDULED: %^t\n%^G" :prepend t)))
 
     ;; using %i in the template above allows you to insert a selected text
     ;; when C-c c is pressed
@@ -1050,11 +925,6 @@ Markdown mode for emacs. Documentation can be found here [[https://github.com/jr
 
   #+BEGIN_SRC emacs-lisp
 
-    ;; enables multiple cursors editting of selected text
-    ;; use C-; to toggle it on/off
-    ;;(use-package iedit
-    ;;  :ensure t)
-
     ;; Narrow selection for editting and only perform operations
     ;; on that part of the text without affecting the full text
     ;; keybinding is C-x n
@@ -1084,8 +954,6 @@ Markdown mode for emacs. Documentation can be found here [[https://github.com/jr
 	     (LaTeX-narrow-to-environment))
 	    (t (narrow-to-defun))))
 
-    ;(define-key endless/toggle-map "n"
-    ;  #'narrow-or-widen-dwim)
     ;; This line actually replaces Emacs' entire narrowing
     ;; keymap, that's how much I like this command. Only
     ;; copy it if that's what you want.
@@ -1124,7 +992,7 @@ Deletes multiple empty lines and extra spaces
 #+END_SRC
 
 ** Aggressive Indent
-    Easily adjusts indentation with tab key
+Easily adjusts indentation with tab key
 
     #+BEGIN_SRC emacs-lisp
 
@@ -1186,36 +1054,16 @@ The keybindings for this are defined in a Hydra: C-;
   (use-package multiple-cursors
     :ensure t)
 
+  (global-set-key (kbd "C-;") 'mc/mark-more-like-this-extended)
+
 #+END_SRC
-* useful alternatives
-  Alternatives to the packages described above
-
-  #+BEGIN_SRC emacs-lisp
-
-    ;(setq ido-enable-flex-matching t)
-    ;(setq ido-everywhere t)
-    ;(ido-mode 1)
-
-    ; The following enables a tabbar with all opened buffers
-    ;(use-package tabbar
-    ;  :ensure t
-    ;  :config (tabbar-mode 1)
-    ;)
-
-    ; Window manager
-    ; Allows you to undo or redo window commands (i.e. reopen closed window etc)
-    ; C-c-left /undo
-    ; C-c-right /redo
-    ;(winner-mode 1)
-
-  #+END_SRC
 * Emacs useful key combinations
 ** Recenter view: C-l
 ** Undo & Redo: C-/ , C-Shift-/
 ** Toggle narrow to selection: C-x n
 ** Expand region of selection: C-=
 ** Execute lisp command: C-x C-e
-** Toggle multiple cursors to edit all instances of selection: C-;
+** Toggle multiple cursors to edit instances of selection: C-;
 ** To enter/exit org capture screen: C-c c | C-c C-c
 ** Open link in browser: C-c C-o
 ** Link syntax is [[url][description] *] (without the star)
@@ -1255,3 +1103,6 @@ get all results in a buffer so you can quickly navigate
 ** Scroll down/up half a page and move cursor: C-v / C-Shift-v
 ** In order to eddit a search buffer and thus edit all results from search: C-c C-p
 ** To apply changes from above operation (search buffer edditing): C-c C-e 
+** Comment-uncomment a block of text: C-c 1 c
+** Convert region to lowercase/uppercase: C-x C-l / C-x C-u
+** Convert word to lowercase/uppercase/capitalize: M-l / M-u / M-c
