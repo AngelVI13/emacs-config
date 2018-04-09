@@ -25,10 +25,18 @@ Emacs settings
   ;; Automatically start for programming modes
   (add-hook 'prog-mode-hook 'real-auto-save-mode)
 
-  (setq real-auto-save-interval 5) ;; in seconsd
+  (setq real-auto-save-interval 10) ;; in seconsd
+
+    ;; Display time in the modeline
+  (display-time-mode 1)
+
+  ;; Display a more compact mode lines
+  ;; (use-package smart-mode-line
+  ;;   :ensure t
+  ;;   :config
+  ;;     (smart-mode-line-enable))
 
 #+END_SRC
-
 ** try
   Package that allows you to 'try' a plugin without permanently installing it
   After restart of emacs, the package that was 'tried' will not be there
@@ -39,6 +47,16 @@ Emacs settings
       :ensure t)
   
   #+END_SRC
+** Personal
+Personal information
+
+#+BEGIN_SRC emacs-lisp
+
+  (setq user-full-name "Angel ILIEV"
+      user-mail-address "a.v.iliev13@gmail.com")
+
+#+END_SRC
+
 * Load external files
   Defines a function to load external configuration lisp files
   
@@ -196,13 +214,14 @@ Some common gui related options
     ;; progn allows to call multiple functions within the initialization of a package
     (use-package ace-window
       :ensure t
-      :init
-      (progn
-        (global-set-key [remap other-window] 'ace-window)
-        (custom-set-faces
-           '(aw-leading-char-face
-           ((t (:inherit ace-jump-face-foreground :height 2.0))))) 
-           ))
+      ;; :init
+      ;; (progn
+      ;;   (global-set-key [remap other-window] 'ace-window)
+      ;;   (custom-set-faces
+      ;;    '(aw-leading-char-face
+      ;;      ((t (:inherit ace-jump-face-foreground :height 2.0))))) 
+      ;;   )
+      )
 
     (defun swap-windows ()
       "Swap windows and leave focus in original window"
@@ -210,9 +229,19 @@ Some common gui related options
       (ace-swap-window)
       (aw-flip-window))
 
-    (global-set-key (kbd "C-x f") 'swap-windows)
+    ;; (global-set-key (kbd "C-x f") 'swap-windows)
 
   #+END_SRC
+
+** Windmove
+Window manager similar to Ace-window
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package windmove
+    :ensure t)
+
+#+END_SRC
 
 ** Linum-relative
 Relative numbers package
@@ -235,85 +264,97 @@ key presses
 #+BEGIN_SRC emacs-lisp
 
   (use-package hydra 
-    :ensure t)
+    :ensure t
+    :config
+    ;; Hydra for modes that toggle on and off
+    (defhydra hydra-toggle (:color blue)
+      "toggle"
+      ("a" abbrev-mode "abbrev")
+      ("s" flyspell-mode "flyspell")
+      ("d" toggle-debug-on-error "debug")
+      ("c" fci-mode "fCi")
+      ("f" auto-fill-mode "fill")
+      ("t" toggle-truncate-lines "truncate")
+      ("w" whitespace-mode "whitespace")
+      ("q" nil "cancel"))
 
-  ;; Hydra for modes that toggle on and off
-  (global-set-key
-   (kbd "C-x t")
-   (defhydra toggle (:color blue)
-     "toggle"
-     ("a" abbrev-mode "abbrev")
-     ("s" flyspell-mode "flyspell")
-     ("d" toggle-debug-on-error "debug")
-     ("c" fci-mode "fCi")
-     ("f" auto-fill-mode "fill")
-     ("t" toggle-truncate-lines "truncate")
-     ("w" whitespace-mode "whitespace")
-     ("q" nil "cancel")))
+    ;; Hydra for music player actions
+    (defhydra music-player-control (:color red)
+      "music"
+      ("l" bongo-playlist "playlist")
+      ("n" bongo-play-next "next")
+      ("p" bongo-play-previous "prev")
+      ("r" bongo-play-random "random")
+      ("h" bongo-show "show playing")
+      ("t" bongo-stop "stop")
+      ("s" bongo-play "start")
+      ("c" bongo-pause/resume "pause/resume")
+      ("q" nil "cancel"))
 
-  ;; Hydra for music player actions
-  (global-set-key
-   (kbd "C-x p")
-   (defhydra music-player-control (:color red)
-     "music"
-     ("l" bongo-playlist "playlist")
-     ("n" bongo-play-next "next")
-     ("p" bongo-play-previous "prev")
-     ("r" bongo-play-random "random")
-     ("h" bongo-show "show playing")
-     ("t" bongo-stop "stop")
-     ("s" bongo-play "start")
-     ("c" bongo-pause/resume "pause/resume")))
+    ;; Hydra for navigation. Allows for number input, i.e. 5p -> go up 5 lines
+    (defhydra hydra-gotoline 
+      ( :pre (linum-mode 1)
+             :post (linum-mode 1))
+      "goto"
+      ("t" (lambda () (interactive)(move-to-window-line-top-bottom 0)) "top")
+      ("b" (lambda () (interactive)(move-to-window-line-top-bottom -1)) "bottom")
+      ("m" (lambda () (interactive)(move-to-window-line-top-bottom)) "middle")
+      ("e" (lambda () (interactive)(end-of-buffer)) "end")
+      ("c" recenter-top-bottom "recenter")
+      ("v" (lambda () (interactive (next-line (/ (window-height (selected-window)) 2)))) "half-page down")
+      ("f" (lambda () (interactive (previous-line (/ (window-height (selected-window)) 2)))) "half-page up")
+      ("n" next-line "down")
+      ("p" previous-line "up")
+      ("g" goto-line "goto-line")
+      ("q" nil "cancel"))
 
-  ;; Hydra for navigation
-  ;; !!!!!!!!!!!!!!!!!!!
-  ;; Consider adjusting long press of 'p' to go up line by line
-  ;; while single press to allow for number input, i.e. 5p -> go up 5 lines
-  (global-set-key
-   (kbd "C-x j")
-   (defhydra gotoline 
-     ( :pre (linum-mode 1)
-            :post (linum-mode 1))
-     "goto"
-     ("t" (lambda () (interactive)(move-to-window-line-top-bottom 0)) "top")
-     ("b" (lambda () (interactive)(move-to-window-line-top-bottom -1)) "bottom")
-     ("m" (lambda () (interactive)(move-to-window-line-top-bottom)) "middle")
-     ("e" (lambda () (interactive)(end-of-buffer)) "end")
-     ("c" recenter-top-bottom "recenter")
-     ("n" next-line "down")
-     ("p" previous-line "up")
-     ("g" goto-line "goto-line")
-     ))
+    ;; Hydra for some org-mode stuff
+    (defhydra hydra-global-org (:color blue)
+      "Org"
+      ("t" org-timer-start "Start Timer")
+      ("s" org-timer-stop "Stop Timer")
+      ("r" org-timer-set-timer "Set Timer") ; This one requires you be in an orgmode doc, as it sets the timer for the header
+      ("p" org-timer "Print Timer") ; output timer value to buffer
+      ("w" (org-clock-in '(4)) "Clock-In") ; used with (org-clock-persistence-insinuate) (setq org-clock-persist t)
+      ("o" org-clock-out "Clock-Out") ; you might also want (setq org-log-note-clock-out t)
+      ("j" org-clock-goto "Clock Goto") ; global visit the clocked task
+      ("c" org-capture "Capture") ; Don't forget to define the captures you want http://orgmode.org/manual/Capture.html
+      ("l" (or )rg-capture-goto-last-stored "Last Capture")
+      ("q" nil "cancel"))
 
-  ;; Hydra for some org-mode stuff
-  (global-set-key
-   (kbd "C-c o")
-   (defhydra hydra-global-org (:color blue)
-     "Org"
-     ("t" org-timer-start "Start Timer")
-     ("s" org-timer-stop "Stop Timer")
-     ("r" org-timer-set-timer "Set Timer") ; This one requires you be in an orgmode doc, as it sets the timer for the header
-     ("p" org-timer "Print Timer") ; output timer value to buffer
-     ("w" (org-clock-in '(4)) "Clock-In") ; used with (org-clock-persistence-insinuate) (setq org-clock-persist t)
-     ("o" org-clock-out "Clock-Out") ; you might also want (setq org-log-note-clock-out t)
-     ("j" org-clock-goto "Clock Goto") ; global visit the clocked task
-     ("c" org-capture "Capture") ; Don't forget to define the captures you want http://orgmode.org/manual/Capture.html
-     ("l" (or )rg-capture-goto-last-stored "Last Capture")))
+    ;; Hydra for moving window splitter
+    (defhydra hydra-splitter (:color red)
+      "splitter"
+      ("<left>" (lambda () (interactive) (hydra-move-splitter-left 3)) "left")
+      ("<down>" (lambda () (interactive) (hydra-move-splitter-down 3)) "down")
+      ("<up>" (lambda () (interactive) (hydra-move-splitter-up 3)) "up")
+      ("<left>" (lambda () (interactive) (hydra-move-splitter-right 3)) "right")
+      ("q" nil "cancel"))
 
-  ;; Hydra for moving window splitter
-  (global-set-key
-   (kbd "C-M-s")
-   (defhydra hydra-splitter (:color red)
-     "splitter"
-     ("h" (lambda () (interactive) (hydra-move-splitter-left 3)) "left")
-     ("j" (lambda () (interactive) (hydra-move-splitter-down 3)) "down")
-     ("k" (lambda () (interactive) (hydra-move-splitter-up 3)) "up")
-     ("l" (lambda () (interactive) (hydra-move-splitter-right 3)) "right")))
+    ;; Hydra for switching between windows
+    (defhydra hydra-windmove (:color red)
+      "windmove"
+      ("<left>" windmove-left "Left")
+      ("<right>" windmove-right "Right" )
+      ("<up>" windmove-up "Up")
+      ("<down>" windmove-down "Down")
+      ("y" other-window "OtherWin")
+      ("s" swap-windows "Swap")
+      ("f" find-file "File")
+      ("F" find-file-other-window "FileOther")
+      ("v" (progn (split-window-right) (windmove-right)) "SplitV & other")
+      ("o" delete-other-windows "DelOthers" :color blue)
+      ("a" ace-window "SelWin")
+      ("d" delete-window "delete")
+      ("D" ace-delete-window "AceDel")
+      ("i" ace-maximize-window "Maxim") 
+      ("q" nil))
+  
+    )
+
+  (global-set-key (kbd "C-c o") 'hydra-global-org)
 
   ;;* Helpers
-  (use-package windmove
-    :ensure t)
-
   (defun hydra-move-splitter-left (arg)
     "Move window splitter left."
     (interactive "p")
@@ -347,6 +388,7 @@ key presses
       (enlarge-window arg)))
 
 #+END_SRC
+
 ** Powerline
 Emacs implementation of the Vim Powerline
 
@@ -428,6 +470,25 @@ Half page scroll implementation
 
 #+END_SRC
 
+** Key-chord
+When 2 keys are pressed very quickly in succession, treat this as a command rather
+than inserting those keys
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package key-chord
+    :ensure t
+    :init
+    (progn 
+      (setq key-chord-one-key-delay 0.16)
+      (key-chord-mode 1)
+      (key-chord-define-global "ww"     'hydra-windmove/body)
+      (key-chord-define-global "tt"     'hydra-toggle/body)
+      (key-chord-define-global "gg"     'hydra-gotoline/body)
+      (key-chord-define-global "jp"     'music-player-control/body)
+      (key-chord-define-global "rs"     'hydra-splitter/body)))
+
+#+END_SRC
 * External tools
 ** Google translate
 This enables translation of text straight from within Emacs
@@ -709,6 +770,7 @@ Mode that provides autocompletion, tags matching, etc. for web dev
       :config
       (progn
         ;; config stuff
+        (setq org-support-shift-select t)
         ))
 
     (setenv "BROWSER" "firefox-browser")
@@ -1057,6 +1119,43 @@ The keybindings for this are defined in a Hydra: C-;
   (global-set-key (kbd "C-;") 'mc/mark-more-like-this-extended)
 
 #+END_SRC
+** Smart-move-beginning-of-line
+Move point to the first non-whitespace character on this line.
+If point is already there, move to the beginning of the line.
+Effectively toggle between the first non-whitespace character and
+the beginning of the line.
+
+#+BEGIN_SRC emacs-lisp
+
+  (defun smarter-move-beginning-of-line (arg)
+    "Move point back to indentation of beginning of line.
+
+  Move point to the first non-whitespace character on this line.
+  If point is already there, move to the beginning of the line.
+  Effectively toggle between the first non-whitespace character and
+  the beginning of the line.
+
+  If ARG is not nil or 1, move forward ARG - 1 lines first.  If
+  point reaches the beginning or end of the buffer, stop there."
+    (interactive "^p")
+    (setq arg (or arg 1))
+
+    ;; Move lines first
+    (when (/= arg 1)
+      (let ((line-move-visual nil))
+        (forward-line (1- arg))))
+
+    (let ((orig-point (point)))
+      (back-to-indentation)
+      (when (= orig-point (point))
+        (move-beginning-of-line 1))))
+
+  ;; remap C-a to `smarter-move-beginning-of-line'
+  (global-set-key [remap move-beginning-of-line]
+                  'smarter-move-beginning-of-line)
+
+#+END_SRC
+
 * Emacs useful key combinations
 ** Recenter view: C-l
 ** Undo & Redo: C-/ , C-Shift-/
@@ -1075,8 +1174,8 @@ The keybindings for this are defined in a Hydra: C-;
 ** To replace values in a column (rectangle): C-x r t
 ** To insert values in a column (rectangle): *string-insert-rectangle*
 ** To open up a better-shell: C-'
-** Hydra - toggle mode: C-x t
-** Hydra - navigation mode: C-x j
+** Hydra - toggle mode: <chord> tt
+** Hydra - navigation mode: <chord> gg
 ** Hydra - org mode: C-c t
 ** To search for word after cursor (repeat M-j to add more words): C-s M-j
 ** Indent text block lefr/right: C-< / C->
@@ -1097,7 +1196,7 @@ get all results in a buffer so you can quickly navigate
 ** Transpose expression (i.e. a == b -> b == a): C-M-t
 ** Unwrap sexp: M-[
 ** Move text/region up/down: M-up / M-down
-** Hydra music player: C-x p
+** Hydra music player: <chord> jp
 ** Swap windows and leave focus in orig. window: C-x f
 ** Open dired of the dir. inside which the file in your buffer is located: C-x C-j 
 ** Scroll down/up half a page and move cursor: C-v / C-Shift-v
@@ -1106,3 +1205,5 @@ get all results in a buffer so you can quickly navigate
 ** Comment-uncomment a block of text: C-c 1 c
 ** Convert region to lowercase/uppercase: C-x C-l / C-x C-u
 ** Convert word to lowercase/uppercase/capitalize: M-l / M-u / M-c
+** Hydra - window movement & operations: <chord> ww
+** Incr/decrease font-size (can be used with multiple cmds i.e <f2> g l g g etc): <f2> g / <f2> l
