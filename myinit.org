@@ -153,6 +153,26 @@ Some common gui related options
 
 #+END_SRC
 
+** Themes
+Various emacs Themes
+
+#+BEGIN_SRC emacs-lisp
+
+  ;; (use-package zenburn-theme
+  ;;   :ensure t)
+
+  ;; (defvar zenburn-override-colors-alist
+  ;;   '(("zenburn-bg+05" . "#282828")
+  ;;     ("zenburn-bg+1"  . "#2F2F2F")
+  ;;     ("zenburn-bg+2"  . "#3F3F3F")
+  ;;     ("zenburn-bg+3"  . "#4F4F4F")))
+  ;; ;;(load-theme 'zenburn t)
+
+  ;; (use-package dracula-theme
+  ;;   :ensure t)
+
+#+END_SRC
+
 ** which-key
   Brings up some help when key is pressed
 
@@ -349,7 +369,25 @@ key presses
       ("D" ace-delete-window "AceDel")
       ("i" ace-maximize-window "Maxim") 
       ("q" nil))
-  
+
+    (defhydra dumb-jump-hydra (:color blue)
+      "Dumb Jump"
+      ("j" dumb-jump-go "Go")
+      ("o" dumb-jump-go-other-window "Other window")
+      ("e" dumb-jump-go-prefer-external "Go external")
+      ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
+      ("i" dumb-jump-go-prompt "Prompt")
+      ("l" dumb-jump-quick-look "Quick look")
+      ("b" dumb-jump-back "Back")
+      ("q" nil "cancel"))
+
+    (defhydra engine-mode-hydra (:color blue)
+      "Engine mode"
+      ("m" engine/search-mail "mail")
+      ("g" engine/search-google "google")
+      ("e" engine/search-emacswiki "emacswiki")
+      ("q" nil "cancel"))
+
     )
 
   (global-set-key (kbd "C-c o") 'hydra-global-org)
@@ -398,6 +436,11 @@ Emacs implementation of the Vim Powerline
     :ensure t)
 
   (powerline-default-theme)
+
+  (set-face-attribute 'mode-line nil
+                      :foreground "Black"
+                      :background "DarkOrange"
+                      :box nil)
 
 #+END_SRC
 
@@ -486,9 +529,28 @@ than inserting those keys
       (key-chord-define-global "tt"     'hydra-toggle/body)
       (key-chord-define-global "gg"     'hydra-gotoline/body)
       (key-chord-define-global "jp"     'music-player-control/body)
-      (key-chord-define-global "rs"     'hydra-splitter/body)))
+      (key-chord-define-global "rs"     'hydra-splitter/body)
+      (key-chord-define-global "dd"     'dumb-jump-hydra/body)
+      (key-chord-define-global "sd"     'engine-mode-hydra/body)))
 
 #+END_SRC
+
+** Adjust opacity of emacs
+Adjust opacity of the emacs window 
+
+#+BEGIN_SRC emacs-lisp
+
+  (defun sanityinc/adjust-opacity (frame incr)
+    (let* ((oldalpha (or (frame-parameter frame 'alpha) 100))
+           (newalpha (+ incr oldalpha)))
+      (when (and (<= frame-alpha-lower-limit newalpha) (>= 100 newalpha))
+        (modify-frame-parameters frame (list (cons 'alpha newalpha))))))
+  (global-set-key (kbd "M-C-8") (lambda () (interactive) (sanityinc/adjust-opacity nil -2)))
+  (global-set-key (kbd "M-C-9") (lambda () (interactive) (sanityinc/adjust-opacity nil 2)))
+  (global-set-key (kbd "M-C-0") (lambda () (interactive) (modify-frame-parameters nil `((alpha . 100)))))
+
+#+END_SRC
+
 * External tools
 ** Google translate
 This enables translation of text straight from within Emacs
@@ -551,6 +613,42 @@ pandoc -o test.org -f html -t org test.html
   ;; special settings for beamer-pdf and latex-pdf exporters
   (setq org-pandoc-options-for-beamer-pdf '((pdf-engine . "xelatex")))
   (setq org-pandoc-options-for-latex-pdf '((pdf-engine . "xelatex")))
+
+#+END_SRC
+
+** Engine-mode
+Search through google, mail, websites etc from Emacs
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package engine-mode
+    :ensure t
+    :config
+    (progn
+      (defengine mail "https://mail.google.com/mail/u/0/#search/%s" :keybinding "m")
+      (defengine google "http://google.com/search?q=%s" :keybinding "g")
+      (defengine emacswiki "http://google.com/search?q=site:emacswiki.org+%s" :keybinding "e")
+      ;;(bind-key* "C-c /" 'engine-mode-hydra/body)
+      (engine-mode)))
+
+#+END_SRC
+
+** Weather
+Weather forecast for city
+
+#+BEGIN_SRC emacs-lisp
+
+  ;; weather from wttr.in
+  (use-package wttrin
+    :ensure t
+    :commands (wttrin)
+    :init
+    (progn
+      (setq wttrin-default-cities '("Vilnius"
+                                    "Ruse"))
+      (setq wttrin-default-accept-language '("Accept-Language" . "en-GB"))))
+
+  (global-set-key (kbd "C-c w") 'wttrin)
 
 #+END_SRC
 
@@ -705,18 +803,6 @@ Works for multiple languages
            ("M-g z" . dumb-jump-go-prefer-external-other-window))
     :config (setq dumb-jump-selector 'ivy) ;; (setq dumb-jump-selector 'helm)
     :ensure)
-
-  (global-set-key
-   (kbd "C-x C-d")
-   (defhydra dumb-jump-hydra (:color blue :columns 3)
-     "Dumb Jump"
-     ("j" dumb-jump-go "Go")
-     ("o" dumb-jump-go-other-window "Other window")
-     ("e" dumb-jump-go-prefer-external "Go external")
-     ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
-     ("i" dumb-jump-go-prompt "Prompt")
-     ("l" dumb-jump-quick-look "Quick look")
-     ("b" dumb-jump-back "Back")))
 
 #+END_SRC
 ** Projectile
@@ -1180,14 +1266,14 @@ the beginning of the line.
 ** To search for word after cursor (repeat M-j to add more words): C-s M-j
 ** Indent text block lefr/right: C-< / C->
 ** Open emacs shell: F6
-** Hydra - move window splitter around: C-M-s
+** Hydra - move window splitter around: <chord> rs
 ** Ggtags go to definition / return from definition: M-. / M-*
 ** To search all files for a string/regex: counsel-ag (type C-c C-o to 
 get all results in a buffer so you can quickly navigate
 ** Projectile - search all project files: C-c p s s / C-c p s g
 ** Projectile - find all occurance of regexp in project: C-c p o
 ** Projectile - dicover projects using the projectile-discover...
-** Dump-jump(hydra) - jump to definition/usage (multiple languages): C-x C-d
+** Dump-jump(hydra) - jump to definition/usage (multiple languages): <chord> dd
 ** Toggle code folding (now set up only for c/c++ & java): C-c @ C-c
 ** Google translate some text: C-c T
 ** Google translate the word under the cursor: C-c t
@@ -1197,7 +1283,6 @@ get all results in a buffer so you can quickly navigate
 ** Unwrap sexp: M-[
 ** Move text/region up/down: M-up / M-down
 ** Hydra music player: <chord> jp
-** Swap windows and leave focus in orig. window: C-x f
 ** Open dired of the dir. inside which the file in your buffer is located: C-x C-j 
 ** Scroll down/up half a page and move cursor: C-v / C-Shift-v
 ** In order to eddit a search buffer and thus edit all results from search: C-c C-p
@@ -1207,3 +1292,6 @@ get all results in a buffer so you can quickly navigate
 ** Convert word to lowercase/uppercase/capitalize: M-l / M-u / M-c
 ** Hydra - window movement & operations: <chord> ww
 ** Incr/decrease font-size (can be used with multiple cmds i.e <f2> g l g g etc): <f2> g / <f2> l
+** Adjust opacity of emacs: C-M-8 (decrease) / C-M-9 (increase) / C-M-10 (reset to 100)
+** Search google, gmail or other websites: <chord> sd
+** Show weather forecast: C-c w
