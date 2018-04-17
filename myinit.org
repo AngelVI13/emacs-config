@@ -6,8 +6,20 @@ Emacs settings
 
 #+BEGIN_SRC emacs-lisp
 
-  ;; Allows for better interprogram clipboard integration		  
+  ;; Allows for better interprogram clipboard integration                 
   (setq save-interprogram-paste-before-kill t)
+
+  ;; Disables the bell ringing sound
+  (setq ring-bell-function 'ignore)
+
+  ;; Shows pretty symbols instead of some text
+  ;; for example it will show the lambda symbol insteal of 'lambda'
+  (global-prettify-symbols-mode t)
+
+  ;; When the we are on the last line of the screen
+  ;; continue scrolling line by line and not moving down
+  ;; half a page
+  (setq scroll-conservatively 100)
 
   ;; Automatically reload files that have been modified on the filesystem
   (global-auto-revert-mode 1) ;; you might not want this
@@ -25,16 +37,11 @@ Emacs settings
   ;; Automatically start for programming modes
   (add-hook 'prog-mode-hook 'real-auto-save-mode)
 
-  (setq real-auto-save-interval 10) ;; in seconsd
+  (setq real-auto-save-interval 30) ;; in seconds
 
-    ;; Display time in the modeline
+  ;; Display time in the modeline
+  (setq display-time-24hr-format t)
   (display-time-mode 1)
-
-  ;; Display a more compact mode lines
-  ;; (use-package smart-mode-line
-  ;;   :ensure t
-  ;;   :config
-  ;;     (smart-mode-line-enable))
 
 #+END_SRC
 ** try
@@ -57,6 +64,31 @@ Personal information
 
 #+END_SRC
 
+** config edit/reload
+#+BEGIN_SRC emacs-lisp
+  ;; Opens the config file for us
+  (defun config-visit ()
+    (interactive)
+    (find-file "~/.emacs.d/myinit.org"))
+
+  (global-set-key (kbd "C-c e") 'config-visit)
+
+  (defun config-reload ()
+    (interactive)
+    (org-babel-load-file (expand-file-name "~/.emacs.d/myinit.org")))
+
+  (global-set-key (kbd "C-c r") 'config-reload)
+#+END_SRC
+** kill all buffers
+Kill all currently opened buffers
+
+#+BEGIN_SRC emacs-lisp
+  (defun kill-all-buffers ()
+    (interactive)
+    (mapc 'kill-buffer (buffer-list)))
+  (global-set-key (kbd "C-M-k") 'kill-all-buffers)
+
+#+END_SRC
 * Load external files
   Defines a function to load external configuration lisp files
   
@@ -79,7 +111,7 @@ Some common gui related options
 
   ;; Enable selection highlighting and change color
   (transient-mark-mode t)
-  (set-face-attribute 'region nil :background "#a3a3a3")
+  (set-face-attribute 'region nil :background "#71719F")
 
   ;; Enable showing of matching parenthesis by default
 
@@ -134,8 +166,10 @@ Some common gui related options
 
   (global-set-key (kbd "C-c C-f") 'hs-toggle-hiding)
 
-  ;; Highlights the current line
+  ;; Highlights the current line and sets the highlight color
   (global-hl-line-mode t)
+  (set-face-background 'hl-line "#006666")
+  (set-face-foreground 'highlight nil)
 
   ;; A small animation when the cursor jumps between buffers
   ;; or across pages
@@ -143,33 +177,13 @@ Some common gui related options
     :ensure t
     :config
     (beacon-mode 1)
-                                          ; (setq beacon-color "#666600")
+    (setq beacon-color "#006666")
     )
 
   (toggle-scroll-bar -1)
 
   ;; If you type while there is a selected region, it will delet the region and replace it with the text
   (delete-selection-mode 1)
-
-#+END_SRC
-
-** Themes
-Various emacs Themes
-
-#+BEGIN_SRC emacs-lisp
-
-  ;; (use-package zenburn-theme
-  ;;   :ensure t)
-
-  ;; (defvar zenburn-override-colors-alist
-  ;;   '(("zenburn-bg+05" . "#282828")
-  ;;     ("zenburn-bg+1"  . "#2F2F2F")
-  ;;     ("zenburn-bg+2"  . "#3F3F3F")
-  ;;     ("zenburn-bg+3"  . "#4F4F4F")))
-  ;; ;;(load-theme 'zenburn t)
-
-  ;; (use-package dracula-theme
-  ;;   :ensure t)
 
 #+END_SRC
 
@@ -234,34 +248,41 @@ Various emacs Themes
     ;; progn allows to call multiple functions within the initialization of a package
     (use-package ace-window
       :ensure t
-      ;; :init
-      ;; (progn
-      ;;   (global-set-key [remap other-window] 'ace-window)
-      ;;   (custom-set-faces
-      ;;    '(aw-leading-char-face
-      ;;      ((t (:inherit ace-jump-face-foreground :height 2.0))))) 
-      ;;   )
+      :init
+      (progn
+        (global-set-key [remap other-window] 'ace-window)
+        (custom-set-faces
+         '(aw-leading-char-face
+           ((t (:inherit ace-jump-face-foreground :height 2.0)))))
+        )
       )
 
     (defun swap-windows ()
-      "Swap windows and leave focus in original window"
+      "Swap windows and leave focus in original window."
       (interactive)
       (ace-swap-window)
       (aw-flip-window))
 
-    ;; (global-set-key (kbd "C-x f") 'swap-windows)
+    (global-set-key (kbd "C-c w s") 'swap-windows)
 
+    (defun split-and-follow-horizontally ()
+      "Move cursor to the new split window down."
+      (interactive)
+      (split-window-below)
+      (balance-windows)
+      (other-window 1))
+
+    (global-set-key (kbd "C-x 2") 'split-and-follow-horizontally)
+
+    (defun split-and-follow-vertically ()
+      "Move cursor to the new split window right."
+      (interactive)
+      (split-window-right)
+      (balance-windows)
+      (other-window 1))
+
+    (global-set-key (kbd "C-x 3") 'split-and-follow-vertically)
   #+END_SRC
-
-** Windmove
-Window manager similar to Ace-window
-
-#+BEGIN_SRC emacs-lisp
-
-  (use-package windmove
-    :ensure t)
-
-#+END_SRC
 
 ** Linum-relative
 Relative numbers package
@@ -348,27 +369,8 @@ key presses
       ("<left>" (lambda () (interactive) (hydra-move-splitter-left 3)) "left")
       ("<down>" (lambda () (interactive) (hydra-move-splitter-down 3)) "down")
       ("<up>" (lambda () (interactive) (hydra-move-splitter-up 3)) "up")
-      ("<left>" (lambda () (interactive) (hydra-move-splitter-right 3)) "right")
+      ("<right>" (lambda () (interactive) (hydra-move-splitter-right 3)) "right")
       ("q" nil "cancel"))
-
-    ;; Hydra for switching between windows
-    (defhydra hydra-windmove (:color red)
-      "windmove"
-      ("<left>" windmove-left "Left")
-      ("<right>" windmove-right "Right" )
-      ("<up>" windmove-up "Up")
-      ("<down>" windmove-down "Down")
-      ("y" other-window "OtherWin")
-      ("s" swap-windows "Swap")
-      ("f" find-file "File")
-      ("F" find-file-other-window "FileOther")
-      ("v" (progn (split-window-right) (windmove-right)) "SplitV & other")
-      ("o" delete-other-windows "DelOthers" :color blue)
-      ("a" ace-window "SelWin")
-      ("d" delete-window "delete")
-      ("D" ace-delete-window "AceDel")
-      ("i" ace-maximize-window "Maxim") 
-      ("q" nil))
 
     (defhydra dumb-jump-hydra (:color blue)
       "Dumb Jump"
@@ -390,9 +392,18 @@ key presses
 
     )
 
-  (global-set-key (kbd "C-c o") 'hydra-global-org)
+  (global-set-key (kbd "C-c o")    'hydra-global-org)
+  (global-set-key (kbd "C-c h t")  'hydra-toggle/body)
+  (global-set-key (kbd "C-c h g")  'hydra-gotoline/body)
+  (global-set-key (kbd "C-c h m")  'music-player-control/body)
+  (global-set-key (kbd "C-c h s")  'hydra-splitter/body)
+  (global-set-key (kbd "C-c h d")  'dumb-jump-hydra/body)
+  (global-set-key (kbd "C-c h e")  'engine-mode-hydra/body)
 
   ;;* Helpers
+  (use-package windmove
+    :ensure t)
+
   (defun hydra-move-splitter-left (arg)
     "Move window splitter left."
     (interactive "p")
@@ -427,20 +438,14 @@ key presses
 
 #+END_SRC
 
-** Powerline
-Emacs implementation of the Vim Powerline
+** Window divider
+Enables window divider
 
 #+BEGIN_SRC emacs-lisp
 
-  (use-package powerline
-    :ensure t)
-
-  (powerline-default-theme)
-
-  (set-face-attribute 'mode-line nil
-                      :foreground "Black"
-                      :background "DarkOrange"
-                      :box nil)
+  ;; window dividers
+  (window-divider-mode t)
+  (setq window-divider-default-right-width 2)
 
 #+END_SRC
 
@@ -450,11 +455,11 @@ Hightlights indentation level
 #+BEGIN_SRC emacs-lisp
 
   ;; Start the mode automatically in most programming modes (Emacs 24 and above):
-  (add-hook 'prog-mode-hook 
-            (lambda ()
-              (highlight-indentation-mode)
-              (set-face-background 'highlight-indentation-face "#e3e3d3")
-              (set-face-background 'highlight-indentation-current-column-face "#c3b3b3")))
+  ;; (add-hook 'prog-mode-hook 
+  ;;           (lambda ()
+  ;;             (highlight-indentation-mode)
+  ;;             (set-face-background 'highlight-indentation-face "#444444")
+  ;;             (set-face-background 'highlight-indentation-current-column-face "#c3b3b3")))
 
 #+END_SRC
 
@@ -513,28 +518,6 @@ Half page scroll implementation
 
 #+END_SRC
 
-** Key-chord
-When 2 keys are pressed very quickly in succession, treat this as a command rather
-than inserting those keys
-
-#+BEGIN_SRC emacs-lisp
-
-  (use-package key-chord
-    :ensure t
-    :init
-    (progn 
-      (setq key-chord-one-key-delay 0.16)
-      (key-chord-mode 1)
-      (key-chord-define-global "ww"     'hydra-windmove/body)
-      (key-chord-define-global "tt"     'hydra-toggle/body)
-      (key-chord-define-global "gg"     'hydra-gotoline/body)
-      (key-chord-define-global "jp"     'music-player-control/body)
-      (key-chord-define-global "rs"     'hydra-splitter/body)
-      (key-chord-define-global "dd"     'dumb-jump-hydra/body)
-      (key-chord-define-global "sd"     'engine-mode-hydra/body)))
-
-#+END_SRC
-
 ** Adjust opacity of emacs
 Adjust opacity of the emacs window 
 
@@ -551,6 +534,55 @@ Adjust opacity of the emacs window
 
 #+END_SRC
 
+** Emacs font
+Sets default emacs font size
+
+#+BEGIN_SRC emacs-lisp
+
+  (set-face-attribute 'default nil
+                      :font "Monospace"
+                      :height 100
+                      :weight 'bold
+                      )
+
+#+END_SRC
+** Spaceline
+Modeline improvement for emacs
+
+#+BEGIN_SRC emacs-lisp
+  (use-package spaceline
+    :ensure t
+    :config
+    (require 'spaceline-config)
+    (setq powerline-default-separator (quote arrow))
+    (spaceline-spacemacs-theme))
+#+END_SRC
+
+** Diminish 
+Hide minor modes from modeline
+
+#+BEGIN_SRC emacs-lisp
+  (use-package diminish
+    :ensure t
+    :init
+    (diminish 'hungry-delete-mode)
+    (diminish 'beacon-mode)
+    (diminish 'which-key-mode)
+    (diminish 'undo-tree-mode)
+    (diminish 'subword-mode)
+    (diminish 'smartparens-mode))
+#+END_SRC
+** Dashboard
+Show a dashboard with recent files etc.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package dashboard
+    :ensure t
+    :config
+    (dashboard-setup-startup-hook)
+    (setq dashboard-items '((recents . 10)))
+    (setq dashboard-banner-logo-title "Happy Developing, Angel"))
+#+END_SRC
 * External tools
 ** Google translate
 This enables translation of text straight from within Emacs
@@ -648,7 +680,7 @@ Weather forecast for city
                                     "Ruse"))
       (setq wttrin-default-accept-language '("Accept-Language" . "en-GB"))))
 
-  (global-set-key (kbd "C-c w") 'wttrin)
+  (global-set-key (kbd "C-c f") 'wttrin)
 
 #+END_SRC
 
@@ -664,17 +696,14 @@ Weather forecast for city
    #+END_SRC
 * Programming
 ** Smartparens
-Automatically wrap/rewrap code with ..., expand/contract pairs etc
-You can run M-x sp-cheat-sheet to see all available commands and exmp.
-
 #+BEGIN_SRC emacs-lisp
 
   (use-package smartparens
     :ensure t
-    :bind (([(ctrl meta right)] . sp-forward-sexp)
-           ([(ctrl meta left)] . sp-backward-sexp)
-           ([(ctrl meta up)] . sp-up-sexp)
-           ([(ctrl meta down)] . sp-down-sexp)
+    :bind (("<C-s-right>" . sp-forward-sexp)
+           ("<C-s-left>" . sp-backward-sexp)
+           ("<C-s-up>" . sp-up-sexp)
+           ("<C-s-down>" . sp-down-sexp)
            ("M-]" . sp-unwrap-sexp)
            ("M-[" . sp-backward-unwrap-sexp)
            ("C-M-t" . sp-transpose-sexp)))
@@ -710,6 +739,9 @@ You can run M-x sp-cheat-sheet to see all available commands and exmp.
   (global-set-key (kbd "C-c \"") 'wrap-with-double-quotes)
 
 #+END_SRC
+
+Automatically wrap/rewrap code with ..., expand/contract pairs etc
+You can run M-x sp-cheat-sheet to see all available commands and exmp.
   
 ** Emmet mode
 !Check out emmet mode for rapid web dev
@@ -736,14 +768,14 @@ Golang support
 #+END_SRC
 ** Python
 *** Setup python interpreter
-    Sets up python interpreter
+Sets up python interpreter
  
-    #+BEGIN_SRC emacs-lisp
-      
-      (setq py-python-command "python")
-      (setq python-shell-interpreter "python")
-   
-    #+END_SRC
+#+BEGIN_SRC emacs-lisp
+
+  (setq py-python-command "python2.7")
+  (setq python-shell-interpreter "python2.7")
+
+#+END_SRC
 
 *** Elpy
    Package that enables python IDE-like features
@@ -751,15 +783,25 @@ Golang support
    [[https://github.com/jorgenschaefer/elpy][Github Elpy]]
 
    #+BEGIN_SRC emacs-lisp
-   
-     (use-package elpy
-       :ensure t
-       :config 
-         (elpy-enable))
-   
+
+     ;; (use-package elpy
+     ;;   :ensure t
+     ;;   :config 
+     ;;   (elpy-enable))
+
    #+END_SRC
 
+*** Hooks
+Python Hooks
+
+#+BEGIN_SRC emacs-lisp
+
+  ;; (add-hook 'python-mode-hook (lambda () (auto-complete-mode -1)))
+
+#+END_SRC
+
 ** Ggtags
+
 Tags for code navigation
 
 !!! Note2: In order to use ggtags you have to install the 'global' 
@@ -845,6 +887,18 @@ Mode that provides autocompletion, tags matching, etc. for web dev
   
   #+END_SRC
 * Org
+** basic config
+
+#+BEGIN_SRC emacs-lisp
+  ;; This makes sure that the src code editting is in the current window and
+  ;; not in a new window
+  (setq org-src-window-setup 'current-window)
+
+  ;; This sets up a new template that automatically inserts an
+  ;; emacs-lisp src block after typing <el and TAB
+  (add-to-list 'org-structure-template-alist
+               '("el" "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC"))
+#+END_SRC
 ** Org-mode
   Install org mode for note taking, todos, tasks, presentations and many more.
 
@@ -953,17 +1007,6 @@ Mode that provides autocompletion, tags matching, etc. for web dev
 
     (add-hook 'org-agenda-mode-hook (lambda () (org-gcal-sync) ))
     (add-hook 'org-capture-after-finalize-hook (lambda () (org-gcal-sync) ))
-
-  #+END_SRC
-** org-bullets
-  Makes bullets prettier in org-mode
-
-  #+BEGIN_SRC emacs-lisp
-  
-    (use-package org-bullets
-      :ensure t
-      :config
-      (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
   #+END_SRC
 ** Org-reveal
@@ -1129,12 +1172,12 @@ Markdown mode for emacs. Documentation can be found here [[https://github.com/jr
 Deletes multiple empty lines and extra spaces
 
 #+BEGIN_SRC emacs-lisp
- 
+
   (use-package hungry-delete
     :ensure t
     ;; Do not enable by default cause its annoying
-    ;:config
-    ;(global-hungry-delete-mode)
+    :config
+    (global-hungry-delete-mode)
     )
 
 #+END_SRC
@@ -1171,16 +1214,36 @@ Select an ever expanding region of text
   Autocompletion package
 
   #+BEGIN_SRC emacs-lisp
-  
-  (use-package auto-complete
+
+    ;; (use-package auto-complete
+    ;;   :ensure t
+    ;;   :init
+    ;;   (progn
+    ;;     (ac-config-default)
+    ;;     (global-auto-complete-mode t)
+    ;;     ))
+
+  #+END_SRC
+
+** Company
+Auto-complete for emacs
+
+#+BEGIN_SRC emacs-lisp
+  (use-package company
     :ensure t
     :init
-    (progn
-      (ac-config-default)
-      (global-auto-complete-mode t)
-      ))
-  
-  #+END_SRC
+    (add-hook 'after-init-hook 'global-company-mode))
+
+  ;; Install company autocompletion for python
+  ;; (use-package company-jedi
+  ;;   :ensure t)
+
+  ;; ;; add a hook for python mode
+  ;; (defun my/python-mode-hook ()
+  ;;   (add-to-list 'company-backends 'company-jedi))
+
+  ;; (add-hook 'python-mode-hook 'my/python-mode-hook)
+#+END_SRC
 ** Move-text
 Move line/selected region up/down
 
@@ -1242,6 +1305,45 @@ the beginning of the line.
 
 #+END_SRC
 
+** Global subword
+Instead of jumping back and forth on whole words do the same with subwords
+
+#+BEGIN_SRC emacs-lisp
+  (global-subword-mode 1)
+#+END_SRC
+** Electric pairs
+Add matching pair for (), {}, "" etc.
+
+#+BEGIN_SRC emacs-lisp
+  (setq electric-pair-pairs '(
+                              (?\( . ?\))
+                              (?\[ . ?\])
+                              (?\" . ?\")
+                              ))
+
+  (electric-pair-mode t)
+#+END_SRC
+** Kill whole word
+Kill whole word irrespective of where you are inside a word
+
+#+BEGIN_SRC emacs-lisp
+  (defun kill-whole-word ()
+    (interactive)
+    (backward-word)
+    (kill-word 1))
+  (global-set-key (kbd "C-c w w") 'kill-whole-word)
+#+END_SRC
+** Copy whole line
+#+BEGIN_SRC emacs-lisp
+  (defun copy-whole-line ()
+    (interactive)
+    (save-excursion
+      (kill-new
+       (buffer-substring
+        (point-at-bol)
+        (point-at-eol)))))
+  (global-set-key (kbd "C-c w l") 'copy-whole-line)
+#+END_SRC
 * Emacs useful key combinations
 ** Recenter view: C-l
 ** Undo & Redo: C-/ , C-Shift-/
@@ -1294,4 +1396,4 @@ get all results in a buffer so you can quickly navigate
 ** Incr/decrease font-size (can be used with multiple cmds i.e <f2> g l g g etc): <f2> g / <f2> l
 ** Adjust opacity of emacs: C-M-8 (decrease) / C-M-9 (increase) / C-M-10 (reset to 100)
 ** Search google, gmail or other websites: <chord> sd
-** Show weather forecast: C-c w
+** Show weather forecast: C-c f
