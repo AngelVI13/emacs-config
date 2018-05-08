@@ -1,4 +1,6 @@
 #+STARTUP: overview
+#+TITLE: My emacs configuration file
+#+CREATOR: Angel ILIEV
 
 * Emacs options
 ** Common
@@ -284,6 +286,14 @@ Some common gui related options
     (global-set-key (kbd "C-x 3") 'split-and-follow-vertically)
   #+END_SRC
 
+** Code collapse
+Add hook for code collapse in programming modes
+
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'prog-mode-hook (lambda ()
+                              (hs-minor-mode)
+                              (local-set-key (kbd "C-c C-t") 'hs-toggle-hiding)))
+#+END_SRC
 ** Linum-relative
 Relative numbers package
 
@@ -444,8 +454,8 @@ Enables window divider
 #+BEGIN_SRC emacs-lisp
 
   ;; window dividers
-  (window-divider-mode t)
-  (setq window-divider-default-right-width 2)
+  ;; (window-divider-mode t)
+  ;; (setq window-divider-default-right-width 2)
 
 #+END_SRC
 
@@ -580,7 +590,7 @@ Show a dashboard with recent files etc.
     :ensure t
     :config
     (dashboard-setup-startup-hook)
-    (setq dashboard-items '((recents . 10)))
+    (setq dashboard-items '((recents . 20)))
     (setq dashboard-banner-logo-title "Happy Developing, Angel"))
 #+END_SRC
 * External tools
@@ -695,15 +705,38 @@ Weather forecast for city
 
    #+END_SRC
 * Programming
+** Emmet mode
+!Check out emmet mode for rapid web dev
+** Flycheck
+  On the fly syntax check for a huge number of languages: python, c/c++, java etc
+  
+  #+BEGIN_SRC emacs-lisp
+  
+  (use-package flycheck
+    :ensure t
+    :init 
+    (global-flycheck-mode t)) 
+  
+  #+END_SRC
+** Golang
+Golang support
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package go-mode
+    :ensure t)
+  ;;(go-mode-autoloads)
+
+#+END_SRC
 ** Smartparens
 #+BEGIN_SRC emacs-lisp
 
   (use-package smartparens
     :ensure t
-    :bind (("<C-s-right>" . sp-forward-sexp)
-           ("<C-s-left>" . sp-backward-sexp)
-           ("<C-s-up>" . sp-up-sexp)
-           ("<C-s-down>" . sp-down-sexp)
+    :bind (("<C-M-right>" . sp-forward-sexp)
+           ("<C-M-left>" . sp-backward-sexp)
+           ("<C-M-up>" . sp-up-sexp)
+           ("<C-M-down>" . sp-down-sexp)
            ("M-]" . sp-unwrap-sexp)
            ("M-[" . sp-backward-unwrap-sexp)
            ("C-M-t" . sp-transpose-sexp)))
@@ -742,30 +775,6 @@ Weather forecast for city
 
 Automatically wrap/rewrap code with ..., expand/contract pairs etc
 You can run M-x sp-cheat-sheet to see all available commands and exmp.
-  
-** Emmet mode
-!Check out emmet mode for rapid web dev
-** Flycheck
-  On the fly syntax check for a huge number of languages: python, c/c++, java etc
-  
-  #+BEGIN_SRC emacs-lisp
-  
-  (use-package flycheck
-    :ensure t
-    :init 
-    (global-flycheck-mode t)) 
-  
-  #+END_SRC
-** Golang
-Golang support
-
-#+BEGIN_SRC emacs-lisp
-
-  (use-package go-mode
-    :ensure t)
-  ;;(go-mode-autoloads)
-
-#+END_SRC
 ** Python
 *** Setup python interpreter
 Sets up python interpreter
@@ -784,19 +793,27 @@ Sets up python interpreter
 
    #+BEGIN_SRC emacs-lisp
 
-     ;; (use-package elpy
-     ;;   :ensure t
-     ;;   :config 
-     ;;   (elpy-enable))
+     (use-package elpy
+       :ensure t
+       :config 
+       (elpy-enable))
+
+     (add-hook 'prog-mode-hook (lambda () (highlight-indentation-mode -1)))
+
 
    #+END_SRC
-
+   
 *** Hooks
 Python Hooks
 
 #+BEGIN_SRC emacs-lisp
 
-  ;; (add-hook 'python-mode-hook (lambda () (auto-complete-mode -1)))
+  (defun my/python-bindkey ()
+    "Bind M-. to `elpy-goto-definition'."
+    (local-set-key (kbd "M-.") 'elpy-goto-definition)
+    (local-set-key (kbd "M-*") 'xref-pop-marker-stack)
+    (local-set-key (kbd "C-c \'") 'wrap-with-single-quotes))
+  (add-hook 'python-mode-hook 'my/python-bindkey)
 
 #+END_SRC
 
@@ -822,16 +839,30 @@ package (apt-get linux, win - http://adoxa.altervista.org/global/)
   (global-set-key (kbd "M-*") 'ggtags-prev-mark)
 
 #+END_SRC
+** Protobuff
+Syntax highlighting for protobuff files
+
+#+BEGIN_SRC emacs-lisp
+  (use-package protobuf-mode
+    :ensure t)
+
+  (add-to-list 'auto-mode-alist
+               '("\\.proto\\'" . (lambda ()
+                                   ;; add major mode setting here, if needed, for example:
+                                   (protobuf-mode))))
+#+END_SRC
 ** Yasnippet
   Includes popular snippets for python, c/c++, java etc
   
   #+BEGIN_SRC emacs-lisp
-    
     (use-package yasnippet
       :ensure t
-      :init
-        (yas-global-mode 1))
-  
+      :config 
+      (use-package yasnippet-snippets
+        :ensure t)
+      (yas-reload-all))
+
+    (add-hook 'prog-mode-hook 'yas-minor-mode)
   #+END_SRC
 ** Dump-jump
 Similar functionality to ggtags i.e. jump to declaration/usage etc
@@ -863,8 +894,6 @@ Enables management of multiple projects
   (counsel-projectile-mode)
 
   ;;(add-to-list 'projectile-globally-ignored-directories "*templates/cache")
-  (add-to-list 'projectile-globally-ignored-files "*.map")
-
 #+END_SRC
 
 ** Web-mode
@@ -898,6 +927,14 @@ Mode that provides autocompletion, tags matching, etc. for web dev
   ;; emacs-lisp src block after typing <el and TAB
   (add-to-list 'org-structure-template-alist
                '("el" "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC"))
+
+  ;; This sets up a new template that automatically inserts a
+  ;; python src block after typing <el and TAB
+  (add-to-list 'org-structure-template-alist
+               '("py" "#+BEGIN_SRC python\n?\n#+END_SRC"))
+
+  ;; This enables text wraping by default for org-mode files
+  (add-hook 'org-mode-hook '(lambda () (visual-line-mode 1)))
 #+END_SRC
 ** Org-mode
   Install org mode for note taking, todos, tasks, presentations and many more.
@@ -927,6 +964,10 @@ Mode that provides autocompletion, tags matching, etc. for web dev
      '(org-hide-leading-stars t)
      '(org-startup-folded (quote overview))
      '(org-startup-indented t)
+     '(org-log-into-drawer "DESCRIPTION")
+     '(org-refile-allow-creating-parent-nodes (quote confirm))
+     '(org-refile-targets (quote ((org-agenda-files :level . 1))))
+     '(org-refile-use-outline-path (quote file))
      )
 
     (setq org-file-apps
@@ -947,18 +988,97 @@ Mode that provides autocompletion, tags matching, etc. for web dev
 
     (setq org-agenda-files (list "~/Dropbox/orgfiles/gcal.org"
                                  "~/Dropbox/orgfiles/index.org"
-                                 ;"~/Dropbox/orgfiles/schedule.org"
+                                 "~/Dropbox/orgfiles/training.org"
                                  ))
-
-    (setq org-tag-alist '(("WORK")
-                          ("SPORT")
-                          ("PROJECTS")
-                          ("BOOK")
-                          ("MISC")))
 
     (setq org-capture-templates
           '(("a" "Appointment" entry (file  "~/Dropbox/orgfiles/gcal.org" )
              "* %?\n\n%^T\n\n:PROPERTIES:\n\n:END:\n\n")
+                                            ;("w" "Workout" entry (file "~/Dropbox/orgfiles/workouts.org")
+                                            ;"* TODO %?\n%^g\nSCHEDULED: %^t\n%^{WARM-UP}p\n%^{MAIN}p\n%^{COOL-DOWN}p\n%^{COMMENTS}p\n\n")
+            ("s" "Sport")
+            ("se" "Easy run" entry (file+datetree "~/Dropbox/orgfiles/training.org")
+             "* TODO %^{Description|Easy run} %^g %^g
+    SCHEDULED: %^t
+    :PROPERTIES:
+    :DURATION: %^{Duration|60|20|30|35|40|45|50|55|60|65}
+    :RPE: %^{RPE|2 Easy|1 Very Easy|2 Easy}
+    :COMMENTS: %^{Comments|None}
+    :END:
+    " :time-prompt t)
+            ("sa" "Easy run w/ accelerations" entry (file+datetree "~/Dropbox/orgfiles/training.org")
+             "* TODO %^{Description|Easy run w/ accelerations} %^g %^g
+    SCHEDULED: %^t
+    :PROPERTIES:
+    :DURATION: %^{Duration|60|20|30|35|40|45|50|55|60|65}
+    :RPE: %^{RPE|2 Easy|1 Very Easy|2 Easy|3 Moderate}
+    :COMMENTS: %^{Comments|None}
+    :END:
+    " :time-prompt t)
+            ("si" "Interval run" entry (file+datetree "~/Dropbox/orgfiles/training.org")
+             "* TODO %^{Description|Interval run} %^g
+    SCHEDULED: %^t
+    :PROPERTIES:
+    :WARM-UP: %^{Warmp-up|15|10|15|20|25}
+    :MAIN: %^{Main workout}
+    :COOL-DOWN: %^{Cool-down|15|10|15|20|25}
+    :RPE: %^{RPE|3 Moderate|4 Somewhat Hard|5 Hard|6 Hard-Very Hard|7 Very Hard|8 Very Hard-Nearly Maximal|9 Nearly Maximal|10 Maximal}
+    :COMMENTS: %^{Comments|None}
+    :END:
+    " :time-prompt t)
+            ("sf" "Fartlek" entry (file+datetree "~/Dropbox/orgfiles/training.org")
+             "* TODO %^{Description|Fartlek} %^g
+    SCHEDULED: %^t
+    :PROPERTIES:
+    :WARM-UP: %^{Warmp-up|15|10|15|20|25}
+    :MAIN: %^{Fartlek duration}
+    :COOL-DOWN: %^{Cool-down|15|10|15|20|25}
+    :RPE: %^{RPE|3 Moderate|4 Somewhat Hard|5 Hard|6 Hard-Very Hard|7 Very Hard|8 Very Hard-Nearly Maximal|9 Nearly Maximal|10 Maximal}
+    :COMMENTS: %^{Comments|None}
+    :END:
+    " :time-prompt t)
+            ("st" "Threshold run" entry (file+datetree "~/Dropbox/orgfiles/training.org")
+             "* TODO %^{Description|Threshold run} %^g
+    SCHEDULED: %^t
+    :PROPERTIES:
+    :WARM-UP: %^{Warmp-up|15|10|15|20|25}
+    :MAIN: %^{Threshold duration|20|10|15|20|25|30|35|40|45|50}
+    :COOL-DOWN: %^{Cool-down|15|10|15|20|25}
+    :RPE: %^{RPE|3 Moderate|4 Somewhat Hard|5 Hard|6 Hard-Very Hard|7 Very Hard|8 Very Hard-Nearly Maximal|9 Nearly Maximal|10 Maximal}
+    :COMMENTS: %^{Comments|None}
+    :END:
+    " :time-prompt t)
+            ("sp" "Power run" entry (file+datetree "~/Dropbox/orgfiles/training.org")
+             "* TODO %^{Description|Power run} %^g
+    SCHEDULED: %^t
+    :PROPERTIES:
+    :WARM-UP: %^{Warmp-up|15|10|15|20|25}
+    :MAIN: %^{Power run duration|20|10|15|20|25|30|35|40|45|50}
+    :COOL-DOWN: %^{Cool-down|15|10|15|20|25}
+    :RPE: %^{RPE|3 Moderate|4 Somewhat Hard|5 Hard|6 Hard-Very Hard|7 Very Hard|8 Very Hard-Nearly Maximal|9 Nearly Maximal|10 Maximal}
+    :COMMENTS: %^{Comments|None}
+    :END:
+    " :time-prompt t)
+            ("sh" "Hill reps" entry (file+datetree "~/Dropbox/orgfiles/training.org")
+             "* TODO %^{Description|Hill reps} %^g
+    SCHEDULED: %^t
+    :PROPERTIES:
+    :WARM-UP: %^{Warmp-up|15|10|15|20|25}
+    :MAIN: %^{Main workout}
+    :COOL-DOWN: %^{Cool-down|15|10|15|20|25}
+    :RPE: %^{RPE|3 Moderate|4 Somewhat Hard|5 Hard|6 Hard-Very Hard|7 Very Hard|8 Very Hard-Nearly Maximal|9 Nearly Maximal|10 Maximal}
+    :COMMENTS: %^{Comments|None}
+    :END:
+    " :time-prompt t)
+            ("sl" "Long run" entry (file+datetree "~/Dropbox/orgfiles/training.org")
+             "* TODO %^{Description|Long run} %^g
+    SCHEDULED: %^t
+    :PROPERTIES:
+    :DURATION: %^{Duration|70|80|90|100|110|120|130|140|150|160|170|180|190|200|210|220|230|240|250}
+    :RPE: %^{RPE|2 Easy|1 Very Easy|2 Easy|3 Moderate|4 Somewhat Hard|5 Hard|6 Hard-Very Hard|7 Very Hard|8 Very Hard-Nearly Maximal|9 Nearly Maximal|10 Maximal}
+    :COMMENTS: %^{Comments|None}
+    :END:
+    " :time-prompt t)
             ("n" "Note" entry (file+headline "~/Dropbox/orgfiles/notes.org" "Notes")
              "* Note %?\n%T")
             ("l" "Link" entry (file+headline "~/Dropbox/orgfiles/links.org" "Links")
@@ -1003,7 +1123,7 @@ Mode that provides autocompletion, tags matching, etc. for web dev
       :config
       (setq org-gcal-client-id "860194293573-uienoduetdjfm6q6njtceid57sg7j7rp.apps.googleusercontent.com"
             org-gcal-client-secret "Rn33L6iU9yCHpSisy_zsJxUb"
-            org-gcal-file-alist '(("a.v.iliev13@gmail.com" .  "~/Dropbox/orgfiles/gcal.org"))))
+            org-gcal-file-alist '(("a.v.iliev13@gmail.com" .  "~/Dropbox/orgfiles/workouts.org"))))
 
     (add-hook 'org-agenda-mode-hook (lambda () (org-gcal-sync) ))
     (add-hook 'org-capture-after-finalize-hook (lambda () (org-gcal-sync) ))
@@ -1022,12 +1142,34 @@ An example presentation can be found here [[https://revealjs.com/#/][Example]]
   ;; The below line is to display Latex nicely
   (setq org-reveal-mathjax t)
 
+  ;; Maps level 2 headings horizontally instead of vertically
+  (setq org-reveal-hlevel 2)
+
   ;; html syntax highlighting
   (use-package htmlize
     :ensure t)
 
 #+END_SRC
 
+** Org-latex
+Exporting org-mode to LaTeX with syntax highlihgting
+
+#+BEGIN_SRC emacs-lisp
+  (setq org-latex-listings 'minted)
+  (setq org-latex-packages-alist '(("" "minted")))
+  (setq org-latex-custom-lang-environments
+        '(
+          (emacs-lisp "common-lispcode")
+          ))
+  (setq org-latex-minted-options
+        '(("frame" "lines")
+          ("fontsize" "\\scriptsize")
+          ("linenos" "")))
+  (setq org-latex-to-pdf-process
+        '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+          "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+          "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+#+END_SRC
 * Text editing & navigation
 ** Markdown-mode
 Markdown mode for emacs. Documentation can be found here [[https://github.com/jrblevin/markdown-mode/tree/668de4a965980d618637a3b5754e721b54c51e83][Github page]]
@@ -1397,3 +1539,8 @@ get all results in a buffer so you can quickly navigate
 ** Adjust opacity of emacs: C-M-8 (decrease) / C-M-9 (increase) / C-M-10 (reset to 100)
 ** Search google, gmail or other websites: <chord> sd
 ** Show weather forecast: C-c f
+** Move subheading under another heading (refile): C-c C-w
+** Adjust level of heading in org: M-<arrows>
+** Org-mode, follow-mode in agenda-view: S-f
+** Org-mode, copy/refile subtree to a different agenda file: C-c M-w
+** Convert org-mode to pdf, first export to .tex and then run the command: pdflatex --shell-escape x008-18144.tex
