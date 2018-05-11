@@ -300,7 +300,9 @@ Relative numbers package
 #+BEGIN_SRC emacs-lisp
 
   (use-package linum-relative
-    :ensure t)
+    :ensure t
+    :config
+    (setq linum-relative-current-symbol ""))
 
   (add-hook 'prog-mode-hook 'linum-relative-mode)
 
@@ -796,10 +798,10 @@ Sets up python interpreter
      (use-package elpy
        :ensure t
        :config 
-       (elpy-enable))
+       (elpy-enable)
+       (define-key elpy-mode-map (kbd "C-c C-t") nil))
 
      (add-hook 'prog-mode-hook (lambda () (highlight-indentation-mode -1)))
-
 
    #+END_SRC
    
