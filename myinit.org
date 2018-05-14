@@ -865,6 +865,25 @@ Syntax highlighting for protobuff files
       (yas-reload-all))
 
     (add-hook 'prog-mode-hook 'yas-minor-mode)
+
+    ;; Helper Yasnippet function for generating python docstrings
+    (defun python-args-to-docstring-custom ()
+      "Return custom docstring format for the python arguments in yas-text."
+      (let* ((indent (concat "\n" (make-string (current-column) 32)))
+             (args (python-split-args yas-text))
+             (max-len (if args (apply 'max (mapcar (lambda (x) (length (nth 0 x))) args)) 0))
+             (formatted-args (mapconcat
+                              (lambda (x)
+                                (setq arg-name (nth 0 x))
+                                (setq def-value (nth 1 x))
+                                (concat
+                                 "@type " arg-name ":" indent
+                                 "@param " arg-name ":" (if def-value (concat " \(default " def-value "\)"))
+                                 "\n"))
+                              args
+                              indent)))
+        (unless (string= formatted-args "")
+          (mapconcat 'identity (list "" formatted-args) indent))))
   #+END_SRC
 ** Dump-jump
 Similar functionality to ggtags i.e. jump to declaration/usage etc
@@ -1537,7 +1556,6 @@ get all results in a buffer so you can quickly navigate
 ** Convert region to lowercase/uppercase: C-x C-l / C-x C-u
 ** Convert word to lowercase/uppercase/capitalize: M-l / M-u / M-c
 ** Hydra - window movement & operations: <chord> ww
-** Incr/decrease font-size (can be used with multiple cmds i.e <f2> g l g g etc): <f2> g / <f2> l
 ** Adjust opacity of emacs: C-M-8 (decrease) / C-M-9 (increase) / C-M-10 (reset to 100)
 ** Search google, gmail or other websites: <chord> sd
 ** Show weather forecast: C-c f
@@ -1546,3 +1564,4 @@ get all results in a buffer so you can quickly navigate
 ** Org-mode, follow-mode in agenda-view: S-f
 ** Org-mode, copy/refile subtree to a different agenda file: C-c M-w
 ** Convert org-mode to pdf, first export to .tex and then run the command: pdflatex --shell-escape x008-18144.tex
+** Toggle code collapse: C-c C-t

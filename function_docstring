@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: function_docstring
+# key: fd
+# group: definitions
+# contributor: Angel ILIEV <a.v.iliev13@gmail.com>
+# --
+def ${1:name}($2):
+    \"\"\"$3
+    ${2:$(python-args-to-docstring-custom)}
+    \"\"\"
+    $0
