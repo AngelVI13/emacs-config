@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: method_docstring
+# key: md
+# group: object oriented
+# contributor: Angel ILIEV <a.v.iliev13@gmail.com>
+# --
+def ${1:name}(self$2):
+    \"\"\"$3
+    ${2:$(python-args-to-docstring-custom)}
+    \"\"\"
+    $0

@@ -1,0 +1,31 @@
+# -*- mode: snippet -*-
+# name: auto_test_case
+# key: atc
+# group : testing
+# contributor: Angel ILIEV <a.v.iliev13@gmail.com>
+# --
+from test_cases.test_conditions import StepConditions
+from lib.device.fmc4008a_interface import Device
+
+
+class _R${1:REFX}CaseConditions($2):
+    $3
+
+
+class Test$1${4:Test_Name}(_R$1CaseConditions, StepConditions):
+    \"\"\"
+    Requirements: X008-$5
+    Risk Reduction Measure: M$6
+    Test case: REFX-$1: ${7:Test Title}
+    Test case Description:
+        ${8:Test description}
+    Author: ai6894x
+    Related manual test case: X008-${9:REFX}:${10:REV_NUMBER}
+    \"\"\"
+
+    # ---- 1 step ------------------------------------------------------------------------------------------------------
+
+    def test_01_01_${11:step_name}(self):
+        \"\"\"$12
+        \"\"\"
+        $0
