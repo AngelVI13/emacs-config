@@ -51,10 +51,8 @@ Emacs settings
   After restart of emacs, the package that was 'tried' will not be there
 
   #+BEGIN_SRC emacs-lisp
-  
     (use-package try
       :ensure t)
-  
   #+END_SRC
 ** Personal
 Personal information
@@ -707,6 +705,19 @@ Weather forecast for city
 
    #+END_SRC
 * Programming
+** ECB
+#+BEGIN_SRC emacs-lisp
+    (use-package ecb
+      :ensure t
+      :config
+      ;(require 'ecb-autoloads) 
+      (setq ecb-layout-name "left3")
+      (setq ecb-show-sources-in-directories-buffer 'always)
+      (setq ecb-compile-window-height 5)
+      :init
+      ;(ecb-activate)
+      )
+#+END_SRC
 ** Emmet mode
 !Check out emmet mode for rapid web dev
 ** Flycheck
@@ -741,37 +752,28 @@ Golang support
            ("<C-M-down>" . sp-down-sexp)
            ("M-]" . sp-unwrap-sexp)
            ("M-[" . sp-backward-unwrap-sexp)
-           ("C-M-t" . sp-transpose-sexp)))
+           ("C-M-t" . sp-transpose-sexp))
+    :init
+    (smartparens-global-mode t)
+    )
 
-  (setq-default smartparens-mode t)
+;  (setq-default smartparens-mode t)
 
-  ;; The functions below define wrapping of word/pairs under
-  ;; the cursor with various stuff - parens, brackets, quotes etc.
-  ;; loop is replace with cl-loop cause my linux machine has an older
-  ;; version of emacs -> backward compatibility
-  (defmacro def-pairs (pairs)
-    `(progn
-       ,@(cl-loop for (key . val) in pairs
-               collect
-               `(defun ,(read (concat
-                               "wrap-with-"
-                               (prin1-to-string key)
-                               "s"))
-                    (&optional arg)
-                  (interactive "p")
-                  (sp-wrap-with-pair ,val)))))
-
-  (def-pairs ((paren . "(")
-              (bracket . "[")
-              (brace . "{")
-              (single-quote . "'")
-              (double-quote . "\"")
-              (back-quote . "`")))
-
-  (global-set-key (kbd "C-c (") 'wrap-with-parens)
-  (global-set-key (kbd "C-c [") 'wrap-with-brackets)
-  (global-set-key (kbd "C-c {") 'wrap-with-braces)
-  (global-set-key (kbd "C-c \"") 'wrap-with-double-quotes)
+  (global-set-key (kbd "C-c C-(") (lambda (&optional arg)
+                                (interactive "P")
+                                (sp-wrap-with-pair "(")))
+  (global-set-key (kbd "C-c C-[") (lambda (&optional arg)
+                                (interactive "P")
+                                (sp-wrap-with-pair "[")))
+  (global-set-key (kbd "C-c C-{") (lambda (&optional arg)
+                                (interactive "P")
+                                (sp-wrap-with-pair "{")))
+  (global-set-key (kbd "C-c C-'") (lambda (&optional arg)
+                                (interactive "P")
+                                (sp-wrap-with-pair "'")))
+  (global-set-key (kbd "C-c C-\"") (lambda (&optional arg)
+                                (interactive "P")
+                                (sp-wrap-with-pair "\"")))
 
 #+END_SRC
 
@@ -835,10 +837,10 @@ package (apt-get linux, win - http://adoxa.altervista.org/global/)
     (add-hook 'c-mode-common-hook
               (lambda ()
                 (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-                  (ggtags-mode 1))))
+                  (lambda () 
+                    (ggtags-mode 1)
+                    (local-set-key (kbd "M-*") 'ggtags-prev-mark)))))
     )
-
-  (global-set-key (kbd "M-*") 'ggtags-prev-mark)
 
 #+END_SRC
 ** Protobuff
@@ -890,13 +892,13 @@ Similar functionality to ggtags i.e. jump to declaration/usage etc
 Works for multiple languages
 
 #+BEGIN_SRC emacs-lisp
-  (use-package dumb-jump
-    :bind (("M-g o" . dumb-jump-go-other-window)
-           ("M-g j" . dumb-jump-go)
-           ("M-g x" . dumb-jump-go-prefer-external)
-           ("M-g z" . dumb-jump-go-prefer-external-other-window))
-    :config (setq dumb-jump-selector 'ivy) ;; (setq dumb-jump-selector 'helm)
-    :ensure)
+  ;; (use-package dumb-jump
+  ;;   :bind (("M-g o" . dumb-jump-go-other-window)
+  ;;          ("M-g j" . dumb-jump-go)
+  ;;          ("M-g x" . dumb-jump-go-prefer-external)
+  ;;          ("M-g z" . dumb-jump-go-prefer-external-other-window))
+  ;;   :config (setq dumb-jump-selector 'ivy) ;; (setq dumb-jump-selector 'helm)
+  ;;   :ensure)
 
 #+END_SRC
 ** Projectile
@@ -1015,99 +1017,14 @@ Mode that provides autocompletion, tags matching, etc. for web dev
     (setq org-capture-templates
           '(("a" "Appointment" entry (file  "~/Dropbox/orgfiles/gcal.org" )
              "* %?\n\n%^T\n\n:PROPERTIES:\n\n:END:\n\n")
-                                            ;("w" "Workout" entry (file "~/Dropbox/orgfiles/workouts.org")
-                                            ;"* TODO %?\n%^g\nSCHEDULED: %^t\n%^{WARM-UP}p\n%^{MAIN}p\n%^{COOL-DOWN}p\n%^{COMMENTS}p\n\n")
-            ("s" "Sport")
-            ("se" "Easy run" entry (file+datetree "~/Dropbox/orgfiles/training.org")
-             "* TODO %^{Description|Easy run} %^g %^g
-    SCHEDULED: %^t
-    :PROPERTIES:
-    :DURATION: %^{Duration|60|20|30|35|40|45|50|55|60|65}
-    :RPE: %^{RPE|2 Easy|1 Very Easy|2 Easy}
-    :COMMENTS: %^{Comments|None}
-    :END:
-    " :time-prompt t)
-            ("sa" "Easy run w/ accelerations" entry (file+datetree "~/Dropbox/orgfiles/training.org")
-             "* TODO %^{Description|Easy run w/ accelerations} %^g %^g
-    SCHEDULED: %^t
-    :PROPERTIES:
-    :DURATION: %^{Duration|60|20|30|35|40|45|50|55|60|65}
-    :RPE: %^{RPE|2 Easy|1 Very Easy|2 Easy|3 Moderate}
-    :COMMENTS: %^{Comments|None}
-    :END:
-    " :time-prompt t)
-            ("si" "Interval run" entry (file+datetree "~/Dropbox/orgfiles/training.org")
-             "* TODO %^{Description|Interval run} %^g
-    SCHEDULED: %^t
-    :PROPERTIES:
-    :WARM-UP: %^{Warmp-up|15|10|15|20|25}
-    :MAIN: %^{Main workout}
-    :COOL-DOWN: %^{Cool-down|15|10|15|20|25}
-    :RPE: %^{RPE|3 Moderate|4 Somewhat Hard|5 Hard|6 Hard-Very Hard|7 Very Hard|8 Very Hard-Nearly Maximal|9 Nearly Maximal|10 Maximal}
-    :COMMENTS: %^{Comments|None}
-    :END:
-    " :time-prompt t)
-            ("sf" "Fartlek" entry (file+datetree "~/Dropbox/orgfiles/training.org")
-             "* TODO %^{Description|Fartlek} %^g
-    SCHEDULED: %^t
-    :PROPERTIES:
-    :WARM-UP: %^{Warmp-up|15|10|15|20|25}
-    :MAIN: %^{Fartlek duration}
-    :COOL-DOWN: %^{Cool-down|15|10|15|20|25}
-    :RPE: %^{RPE|3 Moderate|4 Somewhat Hard|5 Hard|6 Hard-Very Hard|7 Very Hard|8 Very Hard-Nearly Maximal|9 Nearly Maximal|10 Maximal}
-    :COMMENTS: %^{Comments|None}
-    :END:
-    " :time-prompt t)
-            ("st" "Threshold run" entry (file+datetree "~/Dropbox/orgfiles/training.org")
-             "* TODO %^{Description|Threshold run} %^g
-    SCHEDULED: %^t
-    :PROPERTIES:
-    :WARM-UP: %^{Warmp-up|15|10|15|20|25}
-    :MAIN: %^{Threshold duration|20|10|15|20|25|30|35|40|45|50}
-    :COOL-DOWN: %^{Cool-down|15|10|15|20|25}
-    :RPE: %^{RPE|3 Moderate|4 Somewhat Hard|5 Hard|6 Hard-Very Hard|7 Very Hard|8 Very Hard-Nearly Maximal|9 Nearly Maximal|10 Maximal}
-    :COMMENTS: %^{Comments|None}
-    :END:
-    " :time-prompt t)
-            ("sp" "Power run" entry (file+datetree "~/Dropbox/orgfiles/training.org")
-             "* TODO %^{Description|Power run} %^g
-    SCHEDULED: %^t
-    :PROPERTIES:
-    :WARM-UP: %^{Warmp-up|15|10|15|20|25}
-    :MAIN: %^{Power run duration|20|10|15|20|25|30|35|40|45|50}
-    :COOL-DOWN: %^{Cool-down|15|10|15|20|25}
-    :RPE: %^{RPE|3 Moderate|4 Somewhat Hard|5 Hard|6 Hard-Very Hard|7 Very Hard|8 Very Hard-Nearly Maximal|9 Nearly Maximal|10 Maximal}
-    :COMMENTS: %^{Comments|None}
-    :END:
-    " :time-prompt t)
-            ("sh" "Hill reps" entry (file+datetree "~/Dropbox/orgfiles/training.org")
-             "* TODO %^{Description|Hill reps} %^g
-    SCHEDULED: %^t
-    :PROPERTIES:
-    :WARM-UP: %^{Warmp-up|15|10|15|20|25}
-    :MAIN: %^{Main workout}
-    :COOL-DOWN: %^{Cool-down|15|10|15|20|25}
-    :RPE: %^{RPE|3 Moderate|4 Somewhat Hard|5 Hard|6 Hard-Very Hard|7 Very Hard|8 Very Hard-Nearly Maximal|9 Nearly Maximal|10 Maximal}
-    :COMMENTS: %^{Comments|None}
-    :END:
-    " :time-prompt t)
-            ("sl" "Long run" entry (file+datetree "~/Dropbox/orgfiles/training.org")
-             "* TODO %^{Description|Long run} %^g
-    SCHEDULED: %^t
-    :PROPERTIES:
-    :DURATION: %^{Duration|70|80|90|100|110|120|130|140|150|160|170|180|190|200|210|220|230|240|250}
-    :RPE: %^{RPE|2 Easy|1 Very Easy|2 Easy|3 Moderate|4 Somewhat Hard|5 Hard|6 Hard-Very Hard|7 Very Hard|8 Very Hard-Nearly Maximal|9 Nearly Maximal|10 Maximal}
-    :COMMENTS: %^{Comments|None}
-    :END:
-    " :time-prompt t)
-            ("n" "Note" entry (file+headline "~/Dropbox/orgfiles/notes.org" "Notes")
+             ("n" "Note" entry (file+headline "~/Dropbox/orgfiles/notes.org" "Notes")
              "* Note %?\n%T")
-            ("l" "Link" entry (file+headline "~/Dropbox/orgfiles/links.org" "Links")
-             "* %? %^L %^g \n%T" :prepend t)
-            ("b" "Book idea" entry (file+headline "~/Dropbox/orgfiles/index.org" "Book ideas")
-             "* %?\n%T" :prepend t)
-            ("t" "To Do Item" entry (file+headline "~/Dropbox/orgfiles/index.org" "To Do")
-             "* TODO %?\nSCHEDULED: %^t\n%^G" :prepend t)))
+             ("l" "Link" entry (file+headline "~/Dropbox/orgfiles/links.org" "Links")
+              "* %? %^L %^g \n%T" :prepend t)
+             ("b" "Book idea" entry (file+headline "~/Dropbox/orgfiles/index.org" "Book ideas")
+              "* %?\n%T" :prepend t)
+             ("t" "To Do Item" entry (file+headline "~/Dropbox/orgfiles/index.org" "To Do")
+              "* TODO %?\nSCHEDULED: %^t\n%^G" :prepend t)))
 
     ;; using %i in the template above allows you to insert a selected text
     ;; when C-c c is pressed
@@ -1543,7 +1460,7 @@ get all results in a buffer so you can quickly navigate
 ** Google translate some text: C-c T
 ** Google translate the word under the cursor: C-c t
 ** Navigate on sexp: C-M-<arrow keys>
-** Wrap word/pairs under cursor with (,[,{," : C-c ( / [ / { / "
+** Wrap word/pairs under cursor with (,[,{," : C-( / [ / { / "
 ** Transpose expression (i.e. a == b -> b == a): C-M-t
 ** Unwrap sexp: M-[
 ** Move text/region up/down: M-up / M-down
@@ -1565,3 +1482,5 @@ get all results in a buffer so you can quickly navigate
 ** Org-mode, copy/refile subtree to a different agenda file: C-c M-w
 ** Convert org-mode to pdf, first export to .tex and then run the command: pdflatex --shell-escape x008-18144.tex
 ** Toggle code collapse: C-c C-t
+** Uppercase/lowercase region: C-x C-u / C-x C-l
+** Capitalize word: M-c
