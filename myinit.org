@@ -4,9 +4,9 @@
 
 * Emacs options
 ** Common
-Emacs setti(sp-pair "(" ")" :wrap "C-(")ngs
+Emacs settings
 
-#+BEG(setq-default smartparens-mode t)IN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 
   ;; Allows for better interprogram clipboard integration                 
   (setq save-interprogram-paste-before-kill t)
@@ -51,10 +51,8 @@ Emacs setti(sp-pair "(" ")" :wrap "C-(")ngs
   After restart of emacs, the package that was 'tried' will not be there
 
   #+BEGIN_SRC emacs-lisp
-  
     (use-package try
       :ensure t)
-  
   #+END_SRC
 ** Personal
 Personal information
