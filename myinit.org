@@ -590,7 +590,7 @@ Show a dashboard with recent files etc.
     :ensure t
     :config
     (dashboard-setup-startup-hook)
-    (setq dashboard-items '((recents . 20)))
+    (setq dashboard-items '((recents . 30)))
     (setq dashboard-banner-logo-title "Happy Developing, Angel"))
 #+END_SRC
 * External tools
@@ -705,6 +705,20 @@ Weather forecast for city
 
    #+END_SRC
 * Programming
+** Whitespace mode
+Highlights the parts of a line where chars are over the column limit. Python limit 120, C++ 140
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default whitespace-style '(face lines-tail))
+
+  (add-hook 'python-mode-hook (lambda ()
+                                (setq whitespace-line-column 120)
+                                (whitespace-mode t)))
+
+  (add-hook 'c-mode-common-hook (lambda ()
+                                  (setq whitespace-line-column 140)
+                                  (whitespace-mode t)))
+#+END_SRC
 ** ECB
 #+BEGIN_SRC emacs-lisp
     (use-package ecb
