@@ -7,8 +7,13 @@
 Emacs settings
 
 #+BEGIN_SRC emacs-lisp
+  ;; Automatically compiles and loads the newest version of all my emacs packages
+  (use-package auto-compile
+    :ensure t)
+  (auto-compile-on-load-mode)
+  (auto-compile-on-save-mode)
 
-  ;; Allows for better interprogram clipboard integration                 
+  ;; Allows for better interprogram clipboard integration
   (setq save-interprogram-paste-before-kill t)
 
   ;; Disables the bell ringing sound
@@ -157,8 +162,6 @@ Some common gui related options
   ;; Use spaces instead of tabs
   (setq-default indent-tabs-mode nil)
 
-  (global-set-key (kbd "C-c 1 c") 'comment-or-uncomment-region)
-
   (add-hook 'c-mode-common-hook
             (lambda ()
               (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
@@ -253,9 +256,13 @@ Some common gui related options
         (global-set-key [remap other-window] 'ace-window)
         (custom-set-faces
          '(aw-leading-char-face
-           ((t (:inherit ace-jump-face-foreground :height 2.0)))))
+           ((t (:height 2.0 :foreground "#ff2d2d")))))
+        (custom-set-faces
+         '(aw-background-face
+           ((t (:foreground "#c6c6c6")))))
         )
       )
+      ;:inherit ace-jump-face-foreground 
 
     (defun swap-windows ()
       "Swap windows and leave focus in original window."
@@ -488,29 +495,38 @@ Once downloaded run setup-diredp to enable dired+ functionality
         (progn ;; progn is needed in order to exec multiple statements
           (load-file "~/.emacs.d/lisp/dired+.el")
           ;; Shows shortened version of the files i.e. only name and ext.
-          (setq diredp-hide-details-initially-flag nil)))
+          (setq diredp-hide-details-initially-flag nil)
+          (setq-default dired-omit-files-p t)
+          (setq dired-omit-mode t)))
     )
 
-    ;; If dired++.el file exists then load it and set some configuration for it.
-    (setup-diredp)
+  ;; If dired++.el file exists then load it and set some configuration for it.
+  (setup-diredp)
 
-    ;; Better support for regexp
-    (use-package pcre2el
-      :ensure t
-      :config 
-      (pcre-mode)
-      )
+  ;; Better support for regexp
+  (use-package pcre2el
+    :ensure t
+    :config 
+    (pcre-mode)
+    )
 
-    ;; The two packages below expand the Counsel/Ivy functionality
-    (use-package wgrep
-      :ensure t
-      )
+  ;; The two packages below expand the Counsel/Ivy functionality
+  (use-package wgrep
+    :ensure t
+    )
 
-    ;; For this to work you need to install the fzf package!!!!!!!!!!!
-    ;; Fzf source: https://github.com/junegunn/fzf
-    ;; Consider installing WSL on windows https://docs.microsoft.com/en-us/windows/wsl/install-win10
-    (setq counsel-fzf-cmd "fzf -f %s")
+  ;; Automatically save all changed buffers
+  (setq wgrep-auto-save-buffer t)
 
+  ;; For this to work you need to install the fzf package!!!!!!!!!!!
+  ;; Fzf source: https://github.com/junegunn/fzf
+  ;; Consider installing WSL on windows https://docs.microsoft.com/en-us/windows/wsl/install-win10
+  (setq counsel-fzf-cmd "fzf -f %s")
+
+  (use-package dired-icon
+    :ensure t)
+
+  (add-hook 'dired-mode-hook 'dired-icon-mode)
 #+END_SRC
 
 ** Scroll half-page
@@ -565,7 +581,7 @@ Modeline improvement for emacs
     :config
     (require 'spaceline-config)
     (setq powerline-default-separator (quote arrow))
-    (spaceline-spacemacs-theme))
+    (spaceline-emacs-theme))
 #+END_SRC
 
 ** Diminish 
@@ -701,7 +717,9 @@ Weather forecast for city
    #+BEGIN_SRC emacs-lisp
 
      (setq c-default-style "stroustrup"
-          c-basic-offset 4)
+           c-basic-offset 4)
+
+     ;;(setq-default c-syntactic-indentation nil)
 
    #+END_SRC
 * Programming
@@ -738,12 +756,11 @@ Highlights the parts of a line where chars are over the column limit. Python lim
   On the fly syntax check for a huge number of languages: python, c/c++, java etc
   
   #+BEGIN_SRC emacs-lisp
-  
-  (use-package flycheck
-    :ensure t
-    :init 
-    (global-flycheck-mode t)) 
-  
+
+    (use-package flycheck
+      :ensure t
+      :init 
+      (global-flycheck-mode t))
   #+END_SRC
 ** Golang
 Golang support
@@ -756,6 +773,9 @@ Golang support
 
 #+END_SRC
 ** Smartparens
+Automatically wrap/rewrap code with ..., expand/contract pairs etc
+You can run M-x sp-cheat-sheet to see all available commands and exmp.
+
 #+BEGIN_SRC emacs-lisp
 
   (use-package smartparens
@@ -790,9 +810,6 @@ Golang support
                                 (sp-wrap-with-pair "\"")))
 
 #+END_SRC
-
-Automatically wrap/rewrap code with ..., expand/contract pairs etc
-You can run M-x sp-cheat-sheet to see all available commands and exmp.
 ** Python
 *** Setup python interpreter
 Sets up python interpreter
@@ -834,7 +851,6 @@ Python Hooks
   (add-hook 'python-mode-hook 'my/python-bindkey)
 
 #+END_SRC
-
 ** Ggtags
 
 Tags for code navigation
@@ -846,15 +862,16 @@ package (apt-get linux, win - http://adoxa.altervista.org/global/)
 
   ;; tags for code navigation
   (use-package ggtags
-    :ensure t
-    :config 
-    (add-hook 'c-mode-common-hook
-              (lambda ()
-                (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-                  (lambda () 
-                    (ggtags-mode 1)
-                    (local-set-key (kbd "M-*") 'ggtags-prev-mark)))))
-    )
+    :ensure t)
+
+  (defun my/c-mode-bindkey ()
+    "Bind M-.  to `ggtags-find-tag-dwim'."
+    (ggtags-mode 1)
+    (local-set-key (kbd "M-.") 'ggtags-find-tag-dwim)
+    (local-set-key (kbd "M-*") 'ggtags-prev-mark))
+
+  (add-hook 'c-mode-common-hook 'my/c-mode-bindkey)
+
 
 #+END_SRC
 ** Protobuff
@@ -868,6 +885,13 @@ Syntax highlighting for protobuff files
                '("\\.proto\\'" . (lambda ()
                                    ;; add major mode setting here, if needed, for example:
                                    (protobuf-mode))))
+
+  (defconst my-protobuf-style
+    '((c-basic-offset . 4)
+      (indent-tabs-mode . nil)))
+
+  (add-hook 'protobuf-mode-hook
+            (lambda () (c-add-style "my-style" my-protobuf-style t)))
 #+END_SRC
 ** Yasnippet
   Includes popular snippets for python, c/c++, java etc
@@ -952,6 +976,15 @@ Mode that provides autocompletion, tags matching, etc. for web dev
     (setq web-mode-enable-auto-quoting t)
   
   #+END_SRC
+** C++
+Automatically detect if .h should be opened in c-mode or in C++-mode
+
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'auto-mode-alist
+               '("\\.h\\'" . (lambda ()
+                               ;; add major mode setting here, if needed, for example:
+                               (c++-mode))))
+#+END_SRC
 * Org
 ** basic config
 
@@ -1016,10 +1049,8 @@ Mode that provides autocompletion, tags matching, etc. for web dev
 
     (use-package org-ac
       :ensure t
-      :init (progn
-              (require 'org-ac)
-              (org-ac/config-default)
-              ))
+      :init
+      (org-ac/config-default))
 
     (global-set-key (kbd "C-c c") 'org-capture)
 
@@ -1450,7 +1481,7 @@ Kill whole word irrespective of where you are inside a word
 ** Link syntax is [[url][description] *] (without the star)
 ** Export org file: C-c C-e
 ** Make long line of text into paragraph: M-Q
-** Search for text: C-Shift-s
+** Search for textnn: C-Shift-s
 ** Jump forward/backward a word: M-f / M-b
 ** View google agenda + to do list: C-c a c
 ** To replace values in a column (rectangle): C-x r t
@@ -1483,7 +1514,6 @@ get all results in a buffer so you can quickly navigate
 ** Scroll down/up half a page and move cursor: C-v / C-Shift-v
 ** In order to eddit a search buffer and thus edit all results from search: C-c C-p
 ** To apply changes from above operation (search buffer edditing): C-c C-e 
-** Comment-uncomment a block of text: C-c 1 c
 ** Convert region to lowercase/uppercase: C-x C-l / C-x C-u
 ** Convert word to lowercase/uppercase/capitalize: M-l / M-u / M-c
 ** Hydra - window movement & operations: <chord> ww
@@ -1498,3 +1528,7 @@ get all results in a buffer so you can quickly navigate
 ** Toggle code collapse: C-c C-t
 ** Uppercase/lowercase region: C-x C-u / C-x C-l
 ** Capitalize word: M-c
+** Set macro counter value: C-x C-k C-c
+** Insert macro counter value: <F3>
+** Comment or uncomment line: C-x C-;
+** Add comment after statement: M-;
