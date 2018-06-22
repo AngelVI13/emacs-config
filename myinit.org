@@ -609,6 +609,17 @@ Show a dashboard with recent files etc.
     (setq dashboard-items '((recents . 30)))
     (setq dashboard-banner-logo-title "Happy Developing, Angel"))
 #+END_SRC
+** Centered-window
+Centers text on window (i.e. applies padding to left and right so that the display shows nicely)
+
+#+BEGIN_SRC emacs-lisp
+  (use-package sublimity
+    :ensure t
+    :config
+    (require 'sublimity-attractive)
+    (setq sublimity-attractive-centering-width 130)
+    (sublimity-mode t))
+#+END_SRC
 * External tools
 ** Google translate
 This enables translation of text straight from within Emacs
@@ -722,6 +733,18 @@ Weather forecast for city
      ;;(setq-default c-syntactic-indentation nil)
 
    #+END_SRC
+** Patch style
+Removes windows EOL chars in files containing both UNIX and DOS line endings
+
+#+BEGIN_SRC emacs-lisp
+  (defun remove-dos-eol ()
+    "Do not show ^M in files containing mixed UNIX and DOS line endings."
+    (interactive)
+    (setq buffer-display-table (make-display-table))
+    (aset buffer-display-table ?\^M []))
+
+  (add-hook 'diff-mode-hook 'remove-dos-eol)
+#+END_SRC
 * Programming
 ** Whitespace mode
 Highlights the parts of a line where chars are over the column limit. Python limit 120, C++ 140
