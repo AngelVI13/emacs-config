@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name: method_return_docstring
+# key: mdr
+# group: object oriented
+# contributor: Angel ILIEV <a.v.iliev13@gmail.com>
+# --
+def ${1:name}(self$2):
+    \"\"\"$3
+    ${2:$(python-args-to-docstring-custom)}
+
+    @rtype: ${4:rtype}
+    @return: ${5:description}
+    \"\"\"
+    $0
