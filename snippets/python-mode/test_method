@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: test_method
+# key: tmd
+# group: object oriented
+# contributor: Angel ILIEV <a.v.iliev13@gmail.com>
+# --
+def test_${1:step}_${2:sub}_${3:description}(self):
+    \"\"\"$4
+    \"\"\"
+    $0

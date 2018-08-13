@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: test_method_separator
+# key: tms
+# group: object oriented
+# contributor: Angel ILIEV <a.v.iliev13@gmail.com>
+# --
+
+# ---- ${1:step} step ------------------------------------------------------------------------------------------------------
+$0
