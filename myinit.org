@@ -7,6 +7,9 @@
 Emacs settings
 
 #+BEGIN_SRC emacs-lisp
+  ;; Start emacs in fullscreen mode
+  (add-to-list 'initial-frame-alist '(fullscreen . maximized))
+
   ;; Automatically compiles and loads the newest version of all my emacs packages
   (use-package auto-compile
     :ensure t)
@@ -187,7 +190,6 @@ Some common gui related options
 
   ;; If you type while there is a selected region, it will delet the region and replace it with the text
   (delete-selection-mode 1)
-
 #+END_SRC
 
 ** which-key
@@ -590,7 +592,7 @@ Hide minor modes from modeline
 #+BEGIN_SRC emacs-lisp
   (use-package diminish
     :ensure t
-    :init
+    :config
     (diminish 'hungry-delete-mode)
     (diminish 'beacon-mode)
     (diminish 'which-key-mode)
@@ -619,6 +621,35 @@ Centers text on window (i.e. applies padding to left and right so that the displ
     (require 'sublimity-attractive)
     (setq sublimity-attractive-centering-width 130)
     (sublimity-mode t))
+#+END_SRC
+** Toggle split window layout
+#+BEGIN_SRC emacs-lisp
+  (defun toggle-window-split ()
+    (interactive)
+    (if (= (count-windows) 2)
+        (let* ((this-win-buffer (window-buffer))
+               (next-win-buffer (window-buffer (next-window)))
+               (this-win-edges (window-edges (selected-window)))
+               (next-win-edges (window-edges (next-window)))
+               (this-win-2nd (not (and (<= (car this-win-edges)
+                                           (car next-win-edges))
+                                       (<= (cadr this-win-edges)
+                                           (cadr next-win-edges)))))
+               (splitter
+                (if (= (car this-win-edges)
+                       (car (window-edges (next-window))))
+                    'split-window-horizontally
+                  'split-window-vertically)))
+          (delete-other-windows)
+          (let ((first-win (selected-window)))
+            (funcall splitter)
+            (if this-win-2nd (other-window 1))
+            (set-window-buffer (selected-window) this-win-buffer)
+            (set-window-buffer (next-window) next-win-buffer)
+            (select-window first-win)
+            (if this-win-2nd (other-window 1))))))
+
+  (global-set-key (kbd "C-x |") 'toggle-window-split)
 #+END_SRC
 * External tools
 ** Google translate
@@ -859,6 +890,14 @@ Sets up python interpreter
 
      (add-hook 'prog-mode-hook (lambda () (highlight-indentation-mode -1)))
 
+     ;; Fix trailing whitespaces on save
+     (add-hook 'elpy-mode-hook
+               (lambda ()
+                 (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)))
+
+     ;; Only run flymake if I've not been typing for 5 seconds
+     (setq flymake-no-changes-timeout 5)
+
    #+END_SRC
    
 *** Hooks
@@ -978,6 +1017,8 @@ Enables management of multiple projects
   (counsel-projectile-mode)
 
   ;;(add-to-list 'projectile-globally-ignored-directories "*templates/cache")
+
+  (setq projectile-svn-command "find . -type f -not -iwholename '*.svn/*' -print0")
 #+END_SRC
 
 ** Web-mode
@@ -1170,6 +1211,7 @@ Exporting org-mode to LaTeX with syntax highlihgting
   (setq org-latex-minted-options
         '(("frame" "lines")
           ("fontsize" "\\scriptsize")
+          ("bgcolor" "white")
           ("linenos" "")))
   (setq org-latex-to-pdf-process
         '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
@@ -1492,6 +1534,13 @@ Kill whole word irrespective of where you are inside a word
         (point-at-eol)))))
   (global-set-key (kbd "C-c w l") 'copy-whole-line)
 #+END_SRC
+** Line movement
+Move to lines logically and not visually, if down arror is pressed it will move to next
+line and ignore any wrapped lines in the way
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default line-move-visual nil)
+#+END_SRC
 * Emacs useful key combinations
 ** Recenter view: C-l
 ** Undo & Redo: C-/ , C-Shift-/
@@ -1555,3 +1604,5 @@ get all results in a buffer so you can quickly navigate
 ** Insert macro counter value: <F3>
 ** Comment or uncomment line: C-x C-;
 ** Add comment after statement: M-;
+** Toggle between horizontal and vertical layout: C-x |
+** Move to start/end of defun (function/class/method etc): C-M-a / C-M-e
